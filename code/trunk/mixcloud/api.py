@@ -3,14 +3,14 @@
 from urllib2 import urlopen, HTTPError, URLError
 import json
 
-api_url = "http://api.mixcloud.com/{}/"
+api_url = "http://api.mixcloud.com/{0}/"
 # Rich API URL template, i.e. with all metadata
-r_api_url = "http://api.mixcloud.com/{}/?metadata=1"
+r_api_url = "http://api.mixcloud.com/{0}/?metadata=1"
 
 def getFromAPI(resourceURL):
 	"""Returns the JSON data of the given resource from the Mixcloud API, as a Python object."""
 	try:
-		print resourceURL
+#		print resourceURL
 		api_handle = urlopen(resourceURL)
 		api_output = json.load(api_handle)
 		api_handle.close()
