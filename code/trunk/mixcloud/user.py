@@ -66,7 +66,7 @@ class MCUser():
         """Private method to get the commentor/listened to/favorites usernames connected to the user"""
         conn = self.getConnection(conn_type)
         interact_list = []
-        try:        
+        try:
             while (conn.HasNext()):
                 api_op = conn.getNextPage()
                 for item in api_op["data"]:

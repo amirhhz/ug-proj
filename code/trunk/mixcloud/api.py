@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from time import sleep
 from urllib import urlencode
 from urllib2 import urlopen, HTTPError, URLError
 import json
@@ -16,6 +17,9 @@ connection_keys = [
 
 def getFromAPI(resourceURL, as_obj=True):
     """Returns the JSON data of the given resource from the Mixcloud API, as a Python object by default."""
+
+    sleep(0.1) # just out of respect
+
     try:
         api_handle = urlopen(resourceURL)
         # requested, return the JSON response as a python object
@@ -30,10 +34,18 @@ def getFromAPI(resourceURL, as_obj=True):
 
     except HTTPError as e:
         print e
+        error_op = json.load(e)
+        retry = error_op["error"]["retry_after"]
+        print "Retry after", retry
+        print "Waiting ..."
+        sleep(retry+2)
+        print "Back up :)"
+        return getFromAPI(resourceURL)
+                
     except URLError as e:
         print "URL Error: ", e.reason
         print "Cannot open URL %s for reading" % resourceURL
-
+        exit()
         
 def getBaseURL(*resource_key):
     """Return the URL of a Mixcloud API object given a tuple of strings constituting the key, corresponding to the {0} parameter in the api_url field."""

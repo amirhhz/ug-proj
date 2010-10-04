@@ -3,37 +3,33 @@
 import json
 import pymongo
 
-from mixcloud import user
+from mixcloud import user, api
+from collections import deque
 
-users_todo = user.UserSet([])
+users_q = deque()
 users_done = user.UserSet([])
 
-conn = pymongo.Connection()
-mcdb = conn.mixcloud
+mongo_conn = pymongo.Connection()
+mcdb = mongo_conn.mixcloud
 
-def storeUser(username):
-	if (username not in users_done):
-		u = user.MCUser(username)
-		u.mongoSave(mcdb.user)
-		users_done.add(username)
-		if username in users_todo: users_todo.remove(username)
-		return u
-	
+def storeUser(user):
+    user_id = user.getUserID()
+    user.mongoSave(mcdb.user)
+    users_done.add(user_id)
+    print user_id ####
 
-def crawler(username, depth=1):
-	"""Attempting to perform a depth first search from a seed upto a given depth"""
+def enqueueFollowers(username):
+    parent = user.MCUser(username)
+    storeUser(parent)
+    users_q.extend(parent.getFollowers())
 
-	current_user = storeUser(username)
-	if (current_user != None):
-		followers = current_user.getFollowers()
-		users_todo.update(followers)
-		if (depth != 0):
-			for each in followers:
-#store the children's names but also save their MCUser instances for traversal below
-				crawler(each, depth-1)
-
-		print "User Set (size = %d)" % (len(users_done))
+def crawler(init_user):
+    users_q.append(init_user)
+    print "Set:", len(users_done) ####
+    print "Queued:", len(users_q) ####
+    while (len(users_q) > 0):
+        enqueueFollowers(users_q.popleft())
 
 if __name__ == "__main__":
-	import sys
-	crawler(sys.argv[1])
+    import sys
+    crawler(sys.argv[1])
