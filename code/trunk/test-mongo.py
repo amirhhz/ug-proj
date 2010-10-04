@@ -25,11 +25,16 @@ def enqueueFollowers(username):
 
 def crawler(init_user):
     users_q.append(init_user)
-    print "Set:", len(users_done) ####
-    print "Queued:", len(users_q) ####
     while (len(users_q) > 0):
         enqueueFollowers(users_q.popleft())
 
 if __name__ == "__main__":
     import sys
-    crawler(sys.argv[1])
+    try:
+        crawler(sys.argv[1])
+    except KeyboardInterrupt:
+        print users_done
+        print
+        print "Set:", len(users_done) ####
+        print "Queued:", len(users_q) ####
+
