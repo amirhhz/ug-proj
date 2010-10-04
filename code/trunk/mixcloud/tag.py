@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from api import getFromAPI, api_url, r_api_url
+import api
 
 def getTag(tag):
-	tagURL = r_api_url.format("tag/" + tag)
-	return getFromAPI(tagURL)
+	tagURL = api.getResourceURL("tag", tag)
+	return api.getFromAPI(tagURL)

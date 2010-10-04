@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from api import getFromAPI, api_url, r_api_url
+import api
 
 def getTrack(artist, track):
-	trackURL = r_api_url.format("track/" + artist + "/" + track)
-	return getFromAPI(trackURL)
+	trackURL = api.getResourceURL("track", artist, track)
+	return api.getFromAPI(trackURL)

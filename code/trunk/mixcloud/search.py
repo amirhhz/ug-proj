@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-from api import getFromAPI, api_url, r_api_url
+import api
 from urllib import quote_plus
 
-def getSearch(query, type="cloudcast"):
+def getSearch(query, stype="cloudcast"):
 	"""Returns the search result of query, within the type - cloudcast, user, tag, artist, track."""
-	artistURL = api_url.format("search") + "?q=" + quote_plus(query) + "&type" + type
-	return getFromAPI(artistURL)
+	
+	params = dict({"query":quote_plus(query),"type":stype})
+	searchURL = api.getResourceURL("search", params)	
+	return api.getFromAPI(searchURL)

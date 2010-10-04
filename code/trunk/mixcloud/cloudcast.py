@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from api import getFromAPI, api_url, r_api_url
+import api
 
 def getCloudcast(username, cloudcast):
-	cloudcastURL = r_api_url.format(username + "/" + cloudcast)
-	return getFromAPI(cloudcastURL)
+	cloudcastURL = api.getResourceURL(username, cloudcast)
+	return api.getFromAPI(cloudcastURL)

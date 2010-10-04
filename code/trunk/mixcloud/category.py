@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from api import getFromAPI, api_url, r_api_url
+import api
 
 def getCategory(cat):
-	artistURL = r_api_url.format("category/" + cat)
-	return getFromAPI(artistURL)
+	catURL = api.getResourceURL("category", cat)
+	return api.getFromAPI(catURL)
