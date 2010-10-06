@@ -18,7 +18,7 @@ connection_keys = [
 def getFromAPI(resourceURL, as_obj=True):
     """Returns the JSON data of the given resource from the Mixcloud API, as a Python object by default."""
 
-    sleep(0.1) # just out of respect
+    sleep(0.2) # just out of respect
 
     try:
         api_handle = urlopen(resourceURL)
