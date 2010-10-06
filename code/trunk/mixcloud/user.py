@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
-import api
+from api_pipeline import MetaConnection
 
 class MCUser():
-    def __init__(self,username):
+    def __init__(self, username, api):
         self.user_data = api.getFromAPI(api.getResourceURL(username))
         self.id = self.user_data["username"]
         # for MongoDB's benefit, set _id field to username, which is unique
-        self.user_data["_id"] = self.id        
+        self.user_data["_id"] = self.id
         self.meta_conns = dict()
         # for all metadata connections in API data, turn the url into a MetaConnection object
         for conn in self.user_data["metadata"]["connections"].keys():
-            self.meta_conns[conn] = api.MetaConnection(self.user_data["metadata"]["connections"][conn])
+            self.meta_conns[conn] = MetaConnection(api.getBaseURL(self.id, conn), api)
 
     def getUserID(self):
         return self.id
@@ -55,7 +55,7 @@ class MCUser():
         conn = self.getConnection(conn_type)
         soc_list = []
         try:        
-            while (conn.HasNext()):
+            while (conn.hasNext()):
                 api_op = conn.getNextPage()
                 soc_list += [user["username"] for user in api_op["data"]]
             return soc_list
@@ -67,7 +67,7 @@ class MCUser():
         conn = self.getConnection(conn_type)
         interact_list = []
         try:
-            while (conn.HasNext()):
+            while (conn.hasNext()):
                 api_op = conn.getNextPage()
                 for item in api_op["data"]:
                     interact_list.append(item["user"]["username"])
