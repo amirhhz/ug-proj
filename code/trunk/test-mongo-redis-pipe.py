@@ -14,6 +14,7 @@ cache = Redis()
 # Prep redis keys for user queue (to-do list) and user set (done list)
 rd_prefix = "mcapi:test:"
 user_q = rd_prefix + "userq"
+user_todo = rd_prefix + "usertodo"
 user_set = rd_prefix + "userset"
 
 # Connect to mixcloud db on Mongo
@@ -24,6 +25,7 @@ def storeUser(user_obj):
     user_id = user_obj.getUserID()
     mcdb.user.save(user_obj.getUserData())
     cache.sadd(user_set,user_id)
+    cache.srem(user_todo,user_id)
     print user_id ####
 
 def enqueueFollowers(username):
@@ -32,14 +34,18 @@ def enqueueFollowers(username):
     # enqueue all followers in cache by looping over follower list ...
     followers = parent.getFollowers()
     for f in followers:
-        done = cache.sismember(user_set, f)
-#        print "CHILD:", f, "MEMBER?", done ####
-        if (not done):
+        if (not cache.sismember(user_set, f)
+            and
+            not cache.sismember(user_todo, f)):
             cache.rpush(user_q, f)
+            cache.sadd(user_todo, f)
         
 def crawler(init_user):
-    if (not cache.sismember(user_set, init_user)):
-       cache.rpush(user_q, init_user)
+    if (not cache.sismember(user_set, init_user) 
+        and 
+        not cache.sismember(user_todo, init_user)):
+        cache.rpush(user_q, init_user)
+        cache.sadd(user_todo,init_user)
     while (cache.llen(user_q) > 0):
         enqueueFollowers(cache.lpop(user_q))
 
@@ -51,5 +57,6 @@ if __name__ == "__main__":
         print "\nBYE!"
         print
         print "Set:", cache.scard(user_set) ####
+        print "Todo:", cache.scard(user_todo) ####
         print "Queued:", cache.llen(user_q) ####
 

@@ -27,12 +27,14 @@ class MixcloudAPI():
     def getFromAPI(self, resource_string, as_obj=True):
         """Connects to the specified server and returns the JSON data of the given resource from the Mixcloud API, as a Python object by default."""
 
-        sleep(0.15) # just out of respect
+        sleep(0.2) # just out of respect
         try:
             self.connection.request("GET",resource_string)
             api_response = self.connection.getresponse()
             if api_response.status != 200:
-                raise BadStatusLine
+                if api_response.status == 403:
+                    raise HTTPException
+                raise Exception
             if as_obj:
                 api_output = json.load(api_response)
                 return api_output
@@ -41,17 +43,13 @@ class MixcloudAPI():
                 api_output = api_response.read()
                 return api_output
 
-        except BadStatusLine as e:
+        except HTTPException as e:
             retry = (int) (api_response.getheader("retry-after"))
             print api_response.status, api_response.reason
             print "Retrying after", retry ,"seconds ..."
             sleep(retry)            
             self.getFromAPI(resource_string)
-            
-        except HTTPException as e:
-            print e
-            exit()
-            
+                      
     def getBaseURL(self, *resource_key):
         """Return the URL of a Mixcloud API object given a tuple of strings constituting the key."""
         key = "/".join(resource_key)
