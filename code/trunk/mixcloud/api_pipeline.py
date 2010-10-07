@@ -27,29 +27,35 @@ class MixcloudAPI():
     def getFromAPI(self, resource_string, as_obj=True):
         """Connects to the specified server and returns the JSON data of the given resource from the Mixcloud API, as a Python object by default."""
 
-        sleep(0.2) # just out of respect
-        try:
-            self.connection.request("GET",resource_string)
-            api_response = self.connection.getresponse()
-            if api_response.status != 200:
-                if api_response.status == 403:
-                    raise HTTPException
-                raise Exception
-            if as_obj:
-                api_output = json.load(api_response)
-                return api_output
-            # Otherwise just return string representing the JSON
-            else:
-                api_output = api_response.read()
-                return api_output
+        sleep(0.25) # just out of respect
+#        try:
+        self.connection.request("GET",resource_string)
+        api_response = self.connection.getresponse()
+        if api_response.status != 200:
+            if api_response.status == 403:
+                raise MixcloudAPIException((int)(api_response.getheader("retry-after")))
+            raise HTTPException(api_response.status)
+        if as_obj:
+            api_output = json.load(api_response)
+            return api_output
+        # Otherwise just return string representing the JSON
+        else:
+            api_output = api_response.read()
+            return api_output
 
-        except HTTPException as e:
-            retry = (int) (api_response.getheader("retry-after"))
-            print api_response.status, api_response.reason
-            print "Retrying after", retry ,"seconds ..."
-            sleep(retry)            
-            self.getFromAPI(resource_string)
-                      
+#        except MixcloudAPIException as apie:
+#            print "Dang it, Mixcloud is blocking requests."
+#            self.connection.close()
+#            retry = apie.getRetry()
+#            print "Retrying after", retry ,"seconds ..."
+#            sleep(retry+1)
+#            self.connectToAPI()            
+#            self.getFromAPI(resource_string)
+#        except HTTPException as he:
+#            print "Unknown HTTPException occurred."
+#            print he.args
+#            exit()
+#                      
     def getBaseURL(self, *resource_key):
         """Return the URL of a Mixcloud API object given a tuple of strings constituting the key."""
         key = "/".join(resource_key)
@@ -90,7 +96,21 @@ class MetaConnection():
 
     def getNextPage(self):
         # Fetch first page as Python object
-        page = self.api.getFromAPI(self.next_page, True)
+        page = None
+        try:
+            page = self.api.getFromAPI(self.next_page)
+        except MixcloudAPIException as apie:
+            print "Error during pagination: Mixcloud is blocking requests."
+            self.api.connection.close()
+            retry = apie.getRetry()
+            print "Retrying after", retry ,"seconds ..."
+            sleep(retry+1)
+            self.api.connectToAPI()            
+            page = self.api.getFromAPI(self.next_page)
+        except HTTPException as he:
+            print "Unknown HTTPException occurred."
+            print he.args
+            exit()       
         # if next page exists, update fields as appropriate
         if ( ("paging" in page.keys()) and 
              ("next" in page["paging"].keys()) ):
@@ -108,4 +128,10 @@ class MetaConnection():
     def resetPage(self):
         self.next_page = self.init_page
         self.has_next = True
+        
+class MixcloudAPIException(HTTPException):
+    def __init__(self, retry):
+        self.retry = retry
+    def getRetry(self):
+        return self.retry
 

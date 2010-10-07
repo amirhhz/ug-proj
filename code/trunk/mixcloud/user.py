@@ -1,10 +1,28 @@
 #!/usr/bin/env python
 
+from time import sleep
 from api_pipeline import MetaConnection
+from api_pipeline import MixcloudAPIException
+from httplib import HTTPException
 
 class MCUser():
     def __init__(self, username, api):
-        self.user_data = api.getFromAPI(api.getResourceURL(username))
+        self.api = api
+        try:
+            self.user_data = self.api.getFromAPI(self.api.getResourceURL(username))
+        except MixcloudAPIException as apie:
+            print "Error during MCUser init: Mixcloud is blocking requests."
+            self.api.connection.close()
+            retry = apie.getRetry()
+            print "Retrying after", retry ,"seconds ..."
+            sleep(retry+1)
+            self.api.connectToAPI()            
+            self.user_data = self.api.getFromAPI(self.api.getResourceURL(username))
+        except HTTPException as he:
+            print "Unknown HTTPException occurred."
+            print he.args
+            exit()       
+        
         self.id = self.user_data["username"]
         # for MongoDB's benefit, set _id field to username, which is unique
         self.user_data["_id"] = self.id
