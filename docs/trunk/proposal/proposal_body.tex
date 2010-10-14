@@ -65,8 +65,12 @@
 
 In this project I will explore and implement techniques for making recommendations to members of a social community, focusing on online social networks. The motivation behind this idea is that data about an individual person or some digital content (text, audio-visual, ratings, etc.) is only as valuable as its relation to other such entities. This is true for the user, whose experience is enriched, and the network-provider, whose cultural and financial success will depend on behaviour-based analysis and interactions of its users.
 
-% \subsection*{Dataset}
+\subsection*{The \emph{Mixcloud.com} Dataset}
 As a particular case, I will work on data gathered from Mixcloud.com whom I worked for over the summer of 2009. They are a steadily-growing and successful content distribution website, aiming to be the ``YouTube of Radio''\footnote{http://ww.mixcloud.com/about}. They provide their users with community features such as Twitter-style following, Facebook-style activity updates, favouriting of ``\emph{Cloudcasts}'' (uploaded audio content) and commenting, and a record of listening history. The user-uploaded Cloudcasts are also heavily annotated with tags, categories, text descriptions, metadata about recent listeners and more. At the time of writing, Mixcloud implement some simple mechanisms for \emph{item recommendations} and \emph{personalised recommendations} - recommending Cloudcasts similar to the one being viewed, and recommending ones matching the user's listening history. My recommender system would primarily aim to provide the functionality of \emph{social recommendations} - other users whom the current user may be interested in following or listening to based on their shared social connections, activity similarities and other metrics. The problem of recommending content to users based on the listening pattern of their social connections can also be called social recommendation and would likely use similar underlying data and metrics. It is likely that working solutions to these would draw on concept from all three types of recommendation mentioned so far to account for inherent peculiarities in the dataset. For example, two users may have common taste in music but not be well-connected in the social graph or vice-versa.
+
+It should be noted that I will acquire the data via Mixcloud.com's public API\footnote{http://api.mixcloud.com}. With further re-assurance from the staff at Mixcloud Ltd., this means that I am able to use the data in my project and the results will be publishable in the project dissertation.
+
+TODO: Should I be proposing a fallback plan i.e. a different dataset to work with in the worst case scenario?
 
 \subsection*{Wider Context}
 
@@ -78,12 +82,13 @@ With the accelerating growth of social networks such as Twitter and Facebook, th
 
 \subsection*{Different Datasets}
 
-I have opted to use the Mixcloud.com dataset as it has not been analysed before, but there are many datasets publicly available which are traditionally used to experiment with recommender systems. These include the MovieLens dataset (movie ratings and tags by users), Jester Joke dataset (joke ratings), and Book-Crossing dataset (book ratings). There are potentially other datasets which I may be able to use, for instance data from \emph{MyPersonailty.info}, a collaborator with the Social Psychology department who are gathering personality data using a Facebook application, and therefore has a social context within the Facebook Graph. It is possible that I have time to analyse these datasets and implement recommender systems with a different focus - item recommendations where social links are not a part of the data (the traditional datasets), and deeper social analysis in the case of MyPersonailty data;
+I have opted to use the Mixcloud.com dataset as it has not been analysed before, but there are many datasets publicly available which are traditionally used to experiment with recommender systems. These include the MovieLens dataset (movie ratings by users), Jester Joke dataset (joke ratings), and Book-Crossing dataset (book ratings). There are other datasets I could potentially use, for instance data from \emph{MyPersonailty.info}, a collaborator with the Social Psychology department at Cambridge who are gathering personality data using a Facebook application, which puts the data within the social of the Facebook Graph. It is possible that I have time to analyse these datasets and implement recommender systems with different focii - item recommendations where social links are not a part of the data (the traditional datasets which lack direct social connections), and deeper social analysis in the case of MyPersonailty data.
 
 \subsection*{Scalability and Latency}
-Thinking ahead about possible extensions for this project, a limitation\footnote{http://www.readwriteweb.com/archives/recommendation\_systems\_where\_we\_need\_to\_go.php} of some current recommender systems is the latency of the recommendations after changes in user behaviour, item data and the relationships therein. Especially for large datasets a more ``real time'' performance would be desirable for a recommender system. In particular, I know that Mixcloud's personalised recommendations for users are computed as a batch job overnight on their server, which is effective for them but I wonder if there is more elegant solution with scalable properties and taking advantage of distributed processing power. A possible solution might be to periodically and incrementally update a stored set of recommendations after a sufficient number of changes occur.
+Thinking ahead about possible extensions for this project, a limitation\footnote{http://www.readwriteweb.com/archives/recommendation\_systems\_where\_we\_need\_to\_go.php} of some current recommender systems is the latency of the recommendation generation after changes in user behaviour, item data and the relationships therein. Especially for large datasets a more ``real time'' performance would be desirable for a recommender system. In particular, I know that Mixcloud's personalised recommendations for users are computed as a batch job overnight on their server, which is effective for them but I wonder if there is more elegant solution with scalable properties, taking advantage of distributed processing power. A possible approach might be to periodically and incrementally update a stored set of recommendations after a sufficient number of changes occur.
 
-TODO: Temporal Analysis, \ldots
+\subsection*{Temporal Analysis}
+If I am able to obtain several snapshot of the social network across time, perhaps at 3 week intervals, I could use the changes in the network to identify patterns of behaviour in individuals or groups over the time dimension and make more informed recommendations this way. I could further use the snapshots as a means of evaluation by comparing recommendations made for the network at time (snapshot) $t-1$ with the changes made to the network at time $t$.
 
 \section{Starting Point}
 
@@ -130,9 +135,12 @@ TODO: implementation and performance issues
 
 \subsection*{Classification, Filtering}
 
-TODO: 
+TODO:
+
 Supervised Learning (training set provided): Binary classification - Bayesian networks, decision trees, Support Vector Machines, Neural networks
+
 Unsupervised Learning (no training set): Hierarchical clustering \& choice of distance metrics
+
 Collaborative Filtering: Memory-based (neighbourhood search, Locality Sensitive Hashing, correlation measures) vs. Model-based (see Supervised Learning and clustering)
 
 % An initial idea as to how I might utilise my folksonomy data is by constructing bi- or tripartite graphs that link tags, content and users. The links between the items in these graphs can give us approximations of a user's preferences, or tell us which pieces of content may be related to each other, and a score can be computed about the strength of the connection between two items or users. It may be that several bipartite graphs (tags-content, content-users, users-users etc.) give better results than one very large tripartite graph and I would be interested to see how different approaches compare. The scores calculated at this stage would be essential for the next stage, filtering out recommendations.
@@ -143,9 +151,15 @@ Collaborative Filtering: Memory-based (neighbourhood search, Locality Sensitive 
 
 The main evaluation method I have opted for is that used to measure the performance of \textit{supervised learning} systems: the system written is fed a part of the dataset to learn from, known as the \textit{training set} which has complete information about known relationships between entities, and then a \textit{test set} is given with some relationships missing. The number of correct relationships that the system recommends as output can be used as a measure of how precise and successful the recommender is. Different metrics can be derived from such a test by identifying false negatives and false positives\footnote{http://www.cs.ualberta.ca/\textasciitilde eisner/measures.html -- this page describes the terms \textit{precision, accuracy, sensitivity} and \textit{specificity} with regard to such measurements.}. 
 
+
 TODO: Incorporate cross-validation of partitioned dataset into explaination.
 
+The main method of evaluation I will use to judge the success of the recommender system I write will be cross-validation. This is a common technique for assessing the performance of a supervised learning system which aims to make predictions on some test data, given some training data.
+
+
 TODO: Temporal snapshots to measure quality of recommendations over time against user behaviour.
+
+As mentioned in the Extension Ideas subsection above, if time permits the gathering of several snapshots of the social network, the performance of the recommender system can be compared against the organic growth and changes in the real network since a previous snapshot.
 
 % Improvements in these and any other measures over the course of the project will mark its success and I expect to reach a reasonable, usable level of precision by the end.
 
