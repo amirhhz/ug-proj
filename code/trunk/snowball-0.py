@@ -34,10 +34,9 @@ def enqueueConnections(username):
     storeUser(parent)
     # enqueue all social connection
     for u in toq:
-        if (not cache.sismember(user_set, u)
-            and
-            not cache.sismember(user_todo, u)):
-            cache.rpush(user_q, u)
+        if (not cache.sismember(user_set, u)):
+            if (not cache.sismember(user_todo, u)):
+                cache.rpush(user_q, u)
             cache.sadd(user_todo, u)
         
 def crawler(init_user):

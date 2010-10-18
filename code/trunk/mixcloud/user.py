@@ -58,11 +58,16 @@ class User(InteractiveResource):
             )
 
     def saveAllConnections(self):
-        self.saveCloudcasts()
+#        self.saveCloudcasts()
         self.saveFollowers()
+#        print "Saving followers ..." ####    
         self.saveFollowing()
+#        print "Saving following ..." ####    
         self.saveFavorites()
+#        print "Saving favorties ..." ####    
         self.saveListens()
+#        print "Saving listens ..." ####    
+        
         
     def getAllSocialConnections(self):
         self.saveAllConnections()
