@@ -57,7 +57,7 @@ def save_cloudcasts():
                     {"$addToSet": {"cloudcasts": ccs}, "cloudcast_count":live_count} 
                 )
                 print "Saved."
-                admindb.command("fsync")
+                admindb.command("fsync",async=1)
             print "Up to date."
             print
             
@@ -71,7 +71,7 @@ def save_cloudcasts():
                 {"$addToSet": {"cloudcasts": ccs}, "cloudcast_count": live_count}
             )
             print "Saved."
-            admindb.command("fsync")
+            admindb.command("fsync",async=1)
             print
         
 
