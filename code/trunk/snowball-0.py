@@ -42,10 +42,13 @@ def enqueueConnections(username):
             cache.sadd(user_todo, u)
         
 def crawler(init_user):
-    if (not cache.sismember(user_set, init_user) 
-        and 
-        not cache.sismember(user_todo, init_user)):
-        cache.rpush(user_q, init_user)
+    # refill queue with todo list of users
+    for utodo in cache.smembers(user_todo):
+        cache.rpush(user_q, utodo)
+    if (not cache.sismember(user_set, init_user)):
+        if not (cache.sismember(user_todo, init_user)):
+            # i.e. only add to user_q if not seen before (via user_todo)
+            cache.rpush(user_q, init_user)
         cache.sadd(user_todo,init_user)
     while (cache.llen(user_q) > 0):
         enqueueConnections(cache.lpop(user_q))

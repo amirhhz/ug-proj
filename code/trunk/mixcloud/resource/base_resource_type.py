@@ -4,14 +4,8 @@ import dynamic_resource_type as dyn_rsrc
 
 class InteractiveResource():
     def __init__(self, user, resource=None):
-        if resource is None:
-            self.dyn_resources = {
-                "comments": dyn_rsrc.Comments(user),
-                "favorites": dyn_rsrc.Favorites(user)
-            }
-        else:
         self.dyn_resources = {
-                "comments": dyn_rsrc.Comments(user, resouce),
+                "comments": dyn_rsrc.Comments(user, resource),
                 "favorites": dyn_rsrc.Favorites(user, resource)
             }
            

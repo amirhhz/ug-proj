@@ -105,7 +105,7 @@ resources, including pagination."""
             self.api.connectToAPI()            
             page = self.api.getFromAPI(self.next_page)
         except HTTPException as he:
-            print "Unknown HTTPException occurred."
+            print "Unknown HTTPException occurred during pagination."
             print he.args
             exit()       
         # if next page exists, update fields as appropriate

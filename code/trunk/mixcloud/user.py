@@ -11,7 +11,7 @@ from cloudcast import Cloudcast
 
 class User(InteractiveResource):
     def __init__(self, username, api):
-        InteractiveResource.__init__(username)
+        InteractiveResource.__init__(self, username)
         self.api = api
         self.dyn_resources.update({
             "feed": dyn_rsrc.Feed(username),
@@ -31,7 +31,7 @@ class User(InteractiveResource):
             self.api.connectToAPI()
             self.user_data = self.api.getFromAPI(self.api.getResourceURL(username))
         except HTTPException as he:
-            print "Unknown HTTPException occurred."
+            print "Unknown HTTPException occurred during User() init."
             print he.args
             exit()       
         
@@ -53,8 +53,8 @@ class User(InteractiveResource):
         for resource in self.dyn_resources.keys():
             self.meta_conns[resource] = MetaConnection(
                 api, 
-                api.getBaseURL(resource.resource_keys), 
-                resource.resource_params
+                api.getBaseURL(*self.dyn_resources[resource].resource_key), 
+                **self.dyn_resources[resource].resource_params
             )
 
     def saveAllConnections(self):

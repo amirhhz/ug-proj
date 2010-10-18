@@ -10,13 +10,14 @@ import resource.dynamic_resource_type as dyn_rsrc
 
 class Cloudcast(InteractiveResource):
     def __init__(self, username, cloudcast, api):
-        AnnotationResource.__init__(username, cloudcast)
+        InteractiveResource.__init__(self, username, cloudcast)
         self.api = api
         self.dyn_resources.update({
             "similar": dyn_rsrc.Similar(username, cloudcast),
             "listeners": dyn_rsrc.Listeners(username, cloudcast)
         })
         try:
+            print username, " ", cloudcast
             self.cloudcast_data = self.api.getFromAPI(self.api.getResourceURL(username, cloudcast))
         except MixcloudAPIException as apie:
             print "Error during Cloudcast() init: Mixcloud is blocking requests."
@@ -27,7 +28,7 @@ class Cloudcast(InteractiveResource):
             self.api.connectToAPI()
             self.cloudcast_data = self.api.getFromAPI(self.api.getResourceURL(username, cloudcast))
         except HTTPException as he:
-            print "Unknown HTTPException occurred."
+            print "Unknown HTTPException occurred during Cloudcast() init."
             print he.args
             exit()       
         
@@ -84,7 +85,7 @@ class Cloudcast(InteractiveResource):
                         "comment": item["comment"],
                         "submit_date": item["submit_date"],
                         "key": item["key"]
-                    }}
+                    })
             return comments_list
         except KeyError:
             return comments_list        
