@@ -30,10 +30,9 @@ def storeUser(user_obj):
 
 def enqueueConnections(username):
     parent = user.User(username, mcapi)
-    parent.saveAllConnections()
+    toq = parent.getAllSocialConnections()
     storeUser(parent)
     # enqueue all social connection
-    toq = parent.getAllSocialConnections()
     for u in toq:
         if (not cache.sismember(user_set, u)
             and
