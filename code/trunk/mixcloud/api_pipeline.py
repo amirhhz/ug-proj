@@ -24,10 +24,10 @@ class MixcloudAPI():
         """Makes connection to the API server."""
         self.connection = HTTPConnection(api_address)
 
-    def getFromAPI(self, resource_string, as_obj=True):
+    def getFromAPI(self, resource_string, as_obj=True, respect=0.25):
         """Connects to the specified server and returns the JSON data of the given resource from the Mixcloud API, as a Python object by default."""
 
-        sleep(0.25) # just out of respect
+        sleep(respect) # just out of respect
 #        try:
         self.connection.request("GET",resource_string)
         api_response = self.connection.getresponse()
@@ -43,28 +43,17 @@ class MixcloudAPI():
             api_output = api_response.read()
             return api_output
 
-#        except MixcloudAPIException as apie:
-#            print "Dang it, Mixcloud is blocking requests."
-#            self.connection.close()
-#            retry = apie.getRetry()
-#            print "Retrying after", retry ,"seconds ..."
-#            sleep(retry+1)
-#            self.connectToAPI()            
-#            self.getFromAPI(resource_string)
-#        except HTTPException as he:
-#            print "Unknown HTTPException occurred."
-#            print he.args
-#            exit()
-#                      
     def getBaseURL(self, *resource_key):
-        """Return the URL of a Mixcloud API object given a tuple of strings constituting the key."""
+        """Return the suffix part of the URL of a Mixcloud API object given a
+tuple of strings constituting the key."""
         key = "/".join(resource_key)
         key = "/" + key + "/"
         return key
 
         
     def addURLParams(self, resourceURL, force_meta=True, **params):
-        """Add the parameters specified in params as GET arguments to the end of the URL, forcing the metadata=1 parameter by default"""
+        """Add the parameters specified in params as GET arguments to the end 
+of the URL, forcing the metadata=1 parameter by default."""
         # If indicated, make sure "metadata" parameter is set to 1
         if force_meta: params.update(metadata=1)
         enc_params = urlencode(params)
@@ -72,23 +61,31 @@ class MixcloudAPI():
 
         
     def getResourceURL(self, *resource_key, **params):
-        """First get the base URL from provided resource key tuple and then add HTTP GET parameters, returning the result."""
+        """First get the base suffix part of URL from provided resource key 
+tuple and then add HTTP GET parameters, returning the result."""
         base = self.getBaseURL(*resource_key)
         full = self.addURLParams(base,**params)
         return full
 
 
 class MetaConnection():
-    """Class to faciliate the traversal of metadata connections provided by resources, including pagination."""
-    def __init__(self, baseURL, api, offset=0, limit=100, **params):
+    """Class to faciliate the traversal of metadata connections provided by 
+resources, including pagination."""
+    def __init__(self, api, baseURL, **params):
         self.api = api
-        self.limit = limit
-        self.curr_offset = offset
+        try:
+            self.limit = params["limit"]
+        except KeyError:
+            self.limit = 100
+        try:
+            self.curr_offset = params["offset"]
+        except KeyError:
+            self.curr_offset = 0
         self.baseURL = baseURL
-        self.init_page = self.api.addURLParams(baseURL, False, offset=offset, limit=limit)
+        self.init_page = self.api.addURLParams(baseURL, False, **params)
         # init next_page to current page so that getNextPage() can work as expected
         self.next_page = self.init_page
-        # initiliase to true but change as appropriate on getFirstPage
+        # initiliase to true but change as appropriate on getNextPage()
         self.has_next = True 
 
     def hasNext(self):

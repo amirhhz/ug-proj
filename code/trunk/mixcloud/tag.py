@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 
-import api
+from httplib import HTTPException
 
-def getTag(tag):
-	tagURL = api.getResourceURL("tag", tag)
-	return api.getFromAPI(tagURL)
+from api import MetaConnection
+from api import MixcloudAPIException
+from resource.base_resource_type import AnnotationResource
+import resource.dynamic_resource_type as dyn_rsrc
+
+class Tag(AnnotationResource):
+    def __init__(self, tag, api):
+        AnnotationResource.__init__(tag)
+        self.api = api

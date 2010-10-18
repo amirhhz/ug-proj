@@ -12,7 +12,7 @@ mcapi = MixcloudAPI()
 # Connect to and setup redis
 cache = Redis()
 # Prep redis keys for user queue (to-do list) and user set (done list)
-rd_prefix = "mcapi:test:"
+rd_prefix = "mc:snowball:"
 user_q = rd_prefix + "userq"
 user_todo = rd_prefix + "usertodo"
 user_set = rd_prefix + "userset"
@@ -28,17 +28,18 @@ def storeUser(user_obj):
     cache.srem(user_todo,user_id)
     print user_id ####
 
-def enqueueFollowers(username):
-    parent = user.MCUser(username, mcapi)
+def enqueueConnections(username):
+    parent = user.User(username, mcapi)
+    parent.saveAllConnections()
     storeUser(parent)
-    # enqueue all followers in cache by looping over follower list ...
-    followers = parent.getFollowers()
-    for f in followers:
-        if (not cache.sismember(user_set, f)
+    # enqueue all social connection
+    toq = parent.getAllSocialConnections()
+    for u in toq:
+        if (not cache.sismember(user_set, u)
             and
-            not cache.sismember(user_todo, f)):
-            cache.rpush(user_q, f)
-            cache.sadd(user_todo, f)
+            not cache.sismember(user_todo, u)):
+            cache.rpush(user_q, u)
+            cache.sadd(user_todo, u)
         
 def crawler(init_user):
     if (not cache.sismember(user_set, init_user) 
@@ -47,7 +48,7 @@ def crawler(init_user):
         cache.rpush(user_q, init_user)
         cache.sadd(user_todo,init_user)
     while (cache.llen(user_q) > 0):
-        enqueueFollowers(cache.lpop(user_q))
+        enqueueConnections(cache.lpop(user_q))
 
 if __name__ == "__main__":
     import sys

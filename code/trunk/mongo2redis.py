@@ -4,7 +4,7 @@
 # in MongoDB. Shouldn't need to run this very often.
 
 import json
-import pymongo
+import pymongo.connection
 from redis import Redis
 
 # Connect to and setup redis
@@ -15,11 +15,17 @@ user_q = rd_prefix + "userq"
 user_set = rd_prefix + "userset"
 
 # Connect to mixcloud db on Mongo
-mongo_conn = pymongo.Connection()
+mongo_conn = pymongo.connection.Connection()
 mcdb = mongo_conn.mixcloud
+
+print "Ensuring index exists for mixcloud.user collection ..."
+mcdb.user.ensure_index("_id")
+print "Indexed."
+print
 
 # Helpful pre-message
 print "Before sync..."
+print "*" * 80
 print "MONGO STATS"
 print "No. of users:",  mcdb.user.count()
 print
@@ -39,6 +45,7 @@ for u in stored_users:
 print
 print
 print "...After sync:"
+print "*" * 80
 print "MONGO STATS"
 print "No. of users:",  mcdb.user.count()
 print
