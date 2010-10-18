@@ -33,8 +33,13 @@ class User(InteractiveResource):
         except HTTPException as he:
             print "Unknown HTTPException occurred during User() init."
             print he.args
-            exit()       
-        
+            print "Retrying again in 5 seconds..."
+            self.api.connection.close()
+            sleep(5)
+            print "Ping!"
+            self.api.connectToAPI()            
+            self.user_data = self.api.getFromAPI(self.api.getResourceURL(username))
+
         self.id = self.user_data["username"]
         # for MongoDB's benefit, set _id field to username, which is unique
         self.user_data["_id"] = self.id
@@ -58,15 +63,11 @@ class User(InteractiveResource):
             )
 
     def saveAllConnections(self):
-#        self.saveCloudcasts()
-        self.saveFollowers()
-#        print "Saving followers ..." ####    
-        self.saveFollowing()
-#        print "Saving following ..." ####    
-        self.saveFavorites()
-#        print "Saving favorties ..." ####    
-        self.saveListens()
-#        print "Saving listens ..." ####    
+        if self.user_data["cloudcasts"] == []: self.saveCloudcasts()
+        if self.user_data["followers"] == []: self.saveFollowers()
+        if self.user_data["following"] == []: self.saveFollowing()
+        if self.user_data["favorites"] == []: self.saveFavorites()
+        if self.user_data["listens"] == []: self.saveListens()
         
         
     def getAllSocialConnections(self):
@@ -136,8 +137,9 @@ class User(InteractiveResource):
                 api_op = conn.getNextPage()
                 for cc in api_op["data"]:
                     curr_cc = Cloudcast(self.id, cc["slug"], self.api)
-                    curr_cc.saveAllConnections()
-                    cloudcasts += curr_cc
+#saving cloudcast data turned out to slow things down way too much
+#                    curr_cc.saveAllConnections()
+                    cloudcasts.append(curr_cc.getCloudcastData())
             return cloudcasts
         except KeyError:
             return cloudcasts

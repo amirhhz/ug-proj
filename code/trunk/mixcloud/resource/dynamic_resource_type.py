@@ -96,7 +96,7 @@ class Listens(BaseDynResource):
 class Listeners(BaseDynResource):
     def __init__(self, user, cloudcast):
         BaseDynResource.__init__(self)
-        self.resource_key = (cloudcast, "listeners")
+        self.resource_key = (user, cloudcast, "listeners")
 
 class Similar(BaseDynResource):
     def __init__(self, user, cloudcast):

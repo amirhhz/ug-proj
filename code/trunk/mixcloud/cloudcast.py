@@ -17,7 +17,6 @@ class Cloudcast(InteractiveResource):
             "listeners": dyn_rsrc.Listeners(username, cloudcast)
         })
         try:
-            print username, " ", cloudcast
             self.cloudcast_data = self.api.getFromAPI(self.api.getResourceURL(username, cloudcast))
         except MixcloudAPIException as apie:
             print "Error during Cloudcast() init: Mixcloud is blocking requests."
@@ -30,22 +29,27 @@ class Cloudcast(InteractiveResource):
         except HTTPException as he:
             print "Unknown HTTPException occurred during Cloudcast() init."
             print he.args
-            exit()       
-        
+            print "Retrying again in 5 seconds..."
+            self.api.connection.close()
+            sleep(5)
+            print "Ping!"
+            self.api.connectToAPI()            
+            self.cloudcast_data = self.api.getFromAPI(self.api.getResourceURL(username, cloudcast))
+
         self.meta_conns = dict()
         # for all dynamic resources, produce a MetaConnection object
         for resource in self.dyn_resources.keys():
             self.meta_conns[resource] = MetaConnection(
                 api, 
-                api.getBaseURL(resource.resource_keys), 
-                resource.resource_params
+                api.getBaseURL(*self.dyn_resources[resource].resource_key), 
+                **self.dyn_resources[resource].resource_params
             )
 
     def saveAllConnections(self):
         self.saveFavorites()
-        self.saveListeners()
         self.saveComments()
-
+        self.saveListeners()
+        
     def getCloudcastData(self):
         return self.cloudcast_data
     
@@ -61,7 +65,7 @@ class Cloudcast(InteractiveResource):
         return listeners
     
     def saveListeners(self):
-        listeners = self.getListens()
+        listeners = self.getListeners()
         self.cloudcast_data["listeners"] = listeners
         
     def getFavorites(self):

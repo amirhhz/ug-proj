@@ -102,12 +102,19 @@ resources, including pagination."""
             retry = apie.getRetry()
             print "Retrying after", retry ,"seconds ..."
             sleep(retry+1)
+            print "Ping!"
             self.api.connectToAPI()            
             page = self.api.getFromAPI(self.next_page)
         except HTTPException as he:
-            print "Unknown HTTPException occurred during pagination."
+            print "Unknown HTTPException occurred during pagination."            
             print he.args
-            exit()       
+            print "Retrying again in 5 seconds..."
+            self.api.connection.close()
+            sleep(5)
+            print "Ping!"
+            self.api.connectToAPI()            
+            page = self.api.getFromAPI(self.next_page)
+            
         # if next page exists, update fields as appropriate
         if ( ("paging" in page.keys()) and 
              ("next" in page["paging"].keys()) ):
