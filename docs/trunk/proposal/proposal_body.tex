@@ -1,7 +1,8 @@
 % to be included in proposal.tex
 
 \author{Amir H. Hajizamani}
-\title{CST Part II Individual Project Proposal - Recommender Systems for Social Networks}
+\title{CST Part II Individual Project Proposal -- Recommender Systems for Social Networks}
+
 
 \newcommand{\al}{$<$}
 \newcommand{\ar}{$>$}
@@ -67,47 +68,49 @@ In this project I will explore and implement techniques for making recommendatio
 
 \subsection*{Motivation}
 
-With the growing number of available social network services that individuals can choose to invest time and effort into, it is imperative that there is an incentive to do so. We take this investment by the user to consist of: providing personal information, creating and sharing content, making social connections with other users, and interacting with other users and content in the myriad of ways that are possible and observed in real world implementation such as Facebook, YouTube, LinkedIn, Twitter and Foursquare, to name a few. One way of providing this incentive is by making it easier for users to make \emph{discoveries} - to find other individuals of interest (real-world friends, people with similar characteristics) or content. That is, make recommendations to users and keep them interested in exploring what the social network has to offer. Recommender systems aim to solve the problem of \emph{information overload} in areas where the users of a service struggle to make good choices on what content to consume or what social activities to take part in, simply because the options are overwhelming.
+With the growing number of available social network services that individuals can choose to invest time and effort into, it is imperative that there is an incentive to do so. We take this investment by the user to consist of: providing personal information, creating and sharing content, making social connections with other users, and interacting with other users and content in the myriad of ways that are possible and observed in real world implementation such as Facebook, YouTube, LinkedIn, Twitter and Foursquare, to name a few. One way of providing this incentive is by making it easier for users to make \emph{discoveries} -- to find other individuals of interest (real-world friends, people with similar characteristics) or content. That is, make recommendations to users and keep them interested in exploring what the social network has to offer. Recommender systems aim to solve the problem of \emph{information overload} in areas where the users of a service struggle to make good choices on what content to consume or what social activities to take part in, simply because the options are overwhelming.
 
-If we treat the users of a social network as a community, it is clear that the community will need the investment mentioned above from its users so that it reaches critical mass - the point at which it is valuable for others to join or contribute to the network because the majority of their friends have, or so much of the content they consume is accessible via the service. This will continually increase the richness and quality of the service the community receives (assuming the service provider keeps up and adapts to changes!) and increase the lifetime and utility of the service for its users, too. Of course, here we are concerned with social networks that aim to reach the mainstream and are not inherently limited to a select number of users. For instance, a social network for the community of world experts on network congestion analysis is bound to hit its maximum membership limit very quickly and not be much more useful to its users than email or more traditional communication methods.
+If we treat the users of a social network as a community, it is clear that the community will need the investment mentioned above from its users so that it reaches critical mass -- the point at which it is valuable for others to join or contribute to the network because the majority of their friends have, or so much of the content they consume is accessible via the service. This will continually increase the richness and quality of the service the community receives (assuming the service provider keeps up and adapts to changes!) and increase the lifetime and utility of the service for its users, too. Of course, here we are concerned with social networks that aim to reach the mainstream and are not inherently limited to a select number of users. For instance, a social network for the community of world experts on network congestion analysis is bound to hit its maximum membership limit very quickly and not be much more useful to its users than email or more traditional communication methods.
 
-From a commercial perspective, which is arguably the more important one for the survival of a service, having users remain active on the network and incentivise others to do so, too, is paramount. It is well-understood that social network service providers are not expected to be profitable\footnote{http://www.makeuseof.com/tag/how-do-social-networks-make-money-case-wondering/ - explains the risks behind the business of social networks} until they reach an ``audience of scale'' to enable the adoption of a sensible monetisation model. For instance, Facebook only became profitable in 2009\footnote{http://www.pcpro.co.uk/news/351646/facebook-eyes-profit-as-it-hits-300-million-members} after reaching 300 million users. This means that the investors who enable such ventures at the start need to be convinced that the service has the potential to reach popularity and therefore provide a return on investment. Of the many strategies that can be used to maintain the growth of a social network, implementing a good recommender system is standard practice. It should be noted that recommendations are difficult, if not infeasible, to make at the very beginning of a network's lifetime due to the \emph{cold start} problem, that is, when there is insufficient data to base recommendations on. Therefore, the focus this project is on stages of a network's lifetime after this issue has been overcome.
+From a commercial perspective, which is arguably the more important one for the survival of a service, having users remain active on the network and incentivise others to do so, too, is paramount. It is well-understood that social network service providers are not expected to be profitable\footnote{\url{http://www.makeuseof.com/tag/how-do-social-networks-make-money-case-wondering/} -- explains the risks behind the business of social networks} until they reach an ``audience of scale'' to enable the adoption of a sensible monetisation model. For instance, Facebook only became profitable in 2009\footnote{\url{http://www.pcpro.co.uk/news/351646/facebook-eyes-profit-as-it-hits-300-million-members}} after reaching 300 million users. This means that the investors who enable such ventures at the start need to be convinced that the service has the potential to reach popularity and therefore provide a return on investment. Of the many strategies that can be used to maintain the growth of a social network, implementing a good recommender system is standard practice. It should be noted that recommendations are difficult, if not infeasible, to make at the very beginning of a network's lifetime due to the \emph{cold start} problem, that is, when there is insufficient data to base recommendations on. Therefore, the focus of this project is on stages of a network's lifetime after this issue has been overcome.
 
 Below I describe my chosen dataset and the reasons for this choice over other available datasets.
 
 \subsection*{The \emph{Mixcloud} Dataset}
 
-I will work on data from Mixcloud.com whom I worked for over the summer of 2009. They are a steadily-growing and successful content distribution website, aiming to be the ``YouTube of Radio''. They provide a platform for user-generated audio content, ranging from podcasts to DJ mixes, to be easily accessed by anyone. They have been operating for over a year and have in the order of 100,000 users and a similar number of so-called ``Cloudcasts'' (uploaded audio content). They provide their users with social networkings features such as Twitter-style following, Facebook-style activity updates, favouriting of Cloudcasts and commenting, and a record of listening history. The user-uploaded Cloudcasts are also heavily annotated with tags, categories, text descriptions, tracklists where appropriate, metadata about recent listeners and more. 
+I will work on data from Mixcloud.com whom I worked for over the summer of 2009. They are a steadily-growing and successful content distribution website, aiming to be the ``YouTube of Radio''. They provide a platform for user-generated audio content, ranging from podcasts to DJ mixes, to be easily accessed by anyone. They have been operating for over a year and have in the order of 100,000 users and a similar number of so-called ``Cloudcasts'' (uploaded audio content). They provide their users with social networking features such as Twitter-style following, Facebook-style activity updates, favouriting of Cloudcasts and commenting, and a record of listening history. The user-uploaded Cloudcasts are also heavily annotated with tags, categories, text descriptions, tracklists where appropriate, metadata about recent listeners and more. 
 
-This wealth of metadata about their content and users is available via their public API\footnote{http://api.mixcloud.com} and I shall be gathering the data I need from it. The fact that the API is public means that I am able to use the data in my project and the results will be publishable in the project dissertation. I have had further confirmation from the staff at Mixcloud Ltd. about this.
+This wealth of metadata about their content and users is available via their public API\footnote{\url{http://api.mixcloud.com}} and I shall be gathering the data I need from it. The fact that the API is public means that I am able to use the data in my project and the results will be publishable in the project dissertation. I have had further confirmation from the staff at Mixcloud Ltd. about this.
 
-At the time of writing, Mixcloud implement some simple mechanisms for \emph{item recommendations} and \emph{personalised recommendations} - recommending Cloudcasts similar to the current one, and recommending Cloudcasts matching the user's personal listening history. I would like to my recommender system to primarily aim to provide the functionality of \emph{social recommendations} - suggesting other users whom the current user may be interested in following or listening to based on their shared social connections, activity similarities and other metrics. The problem of recommending content to users based on the listening pattern of their social connections can also be called \emph{social recommendation} and would likely use similar underlying data and metrics. 
+At the time of writing, Mixcloud implement some simple mechanisms for \emph{item recommendations} and \emph{personalised recommendations} -- recommending Cloudcasts similar to the current one, and recommending Cloudcasts matching the user's personal listening history. I would like my recommender system to primarily aim to provide the functionality of \emph{social recommendations} -- suggesting other users whom the current user may be interested in following or listening to based on their shared social connections, activity similarities and other metrics. The problem of recommending content to users based on the listening pattern of their own social connections (as opposed to that of their entire community) can also be called \emph{social recommendation} and would likely use similar underlying data and metrics. I should point out that the social aspect of the Mixcloud community is more similar to that of Twitter, where people follow users who produce good content as well as real life friends, than that of Facebook where social links are more often initiated physically.
 
-Following the motivations described earlier in the last subsection for recommender systems, I understand that Mixcloud have prioritised the implementation of Cloudcast recommendations on their website because their main focus has been on building up the library of content on their network and promoting themselves as content distributors. However, the social networking layer on top of their distribution layer is naturally their next focus, whilst they improve the recommendation algorithms they currently use, too. They can leverage the high standard of their content metadata and existing social connections to make social recommendations. So essentially, the quality and completeness of the dataset, despite its organic nature, and the utility of a social recommender system for Mixcloud and their community are good reasons for picking it. I also compare the Mixcloud dataset with others traditionally used to explore recommender system techniques below.
+Following the motivations described earlier in the last subsection for recommender systems, I understand that Mixcloud have prioritised the implementation of Cloudcast recommendations on their website because their main focus has been on building up the library of content on their network and promoting themselves as content distributors. However, the social networking layer on top of their distribution layer is naturally their next focus, whilst they improve the recommendation algorithms they currently use, too. They can leverage the high standard of their content metadata and existing social connections to make social recommendations. So essentially, the quality and completeness of the dataset, despite its organic nature, and the utility of a social recommender system for Mixcloud and their community are good reasons for picking it. I also compare the Mixcloud dataset with other ones traditionally used to explore recommender system techniques below.
 
 A working system would likely draw on concepts from all three types of recommendation mentioned so far to account for inherent peculiarities in the dataset. For example, two users may have common taste in music but not be well-connected in the social graph or vice-versa. An effective system would take advantage of the rich social graph and indirect relationships between users and content to overcome these issues and enable further linkage in the dataset, hopefully with the effect of aiding the community and commercial objectives outlined so far.
 
 \subsubsection*{Comparison with other Available Datasets}
 
-The most widely used datasets in discussions on recommender systems are the MovieLens, EachMovie, Book-Crossing and Jester Jokes datasets\footnote{http://www.grouplens.org/node/12 - all of these datasets are available via this link} which contains items and user ratings on their respective titular item types. Though the quality of these datasets is proven, they have limitations for my intended project goals. In particular, there is no social connectivity data between users in these datasets and the links between entities are limited to ratings by users on some items. With the Mixcloud dataset I am able to explore the social graph of the users. Furthermore, the Mixcloud dataset provides much richer metadata about its entities, as described above, than any of the traditional datasets which give only enough data to build item-item and item-user matrices corresponding the ratings. The Mixcloud dataset has scope for more interesting analysis and recommender system implementations.
+The most widely used datasets in discussions on recommender systems are the MovieLens, EachMovie, Book-Crossing and Jester Jokes datasets\footnote{\url{http://www.grouplens.org/node/12} -- all of these datasets are available via this link} which contains items and user ratings on their respective titular item types. Though the quality of these datasets is proven, they have limitations for my intended project goals. In particular, there is no social connectivity data between users in these datasets and the links between entities are limited to ratings by users on some items. With the Mixcloud dataset I am able to explore the social graph of the users. Furthermore, the Mixcloud dataset provides much richer metadata about its entities, as described above, than any of the traditional datasets which give only enough data to build item-item and item-user matrices corresponding the ratings. The Mixcloud dataset has scope for more interesting analysis and recommender system implementations.
 
 The Mixcloud dataset also has the potential for analysis in the temporal dimension, which is the extension idea for this project and is described later in this document.
 
 \subsection*{Wider Context}
 
-The Web is rife with successful recommender systems, with companies such as \textit{Amazon, Netflix\footnote{In 2006 Netflix challenged programmers to improve their movie recommendation engine by 10\%.}} and \textit{Pandora} (radio service backed by \textit{The Music Genome Project}\footnote{http://www.pandora.com -- The MGP uses the``genealogy'' of music to link songs and artists}) investing a lot of time and money in improving their algorithms and data quality to better recommend items of interest to their users. On the other hand, more directly community-driven websites such as \textit{del.icio.us} and \textit{flickr} have harnessed the collective intelligence of their users and their tagging of their content with keywords. Collaborative tagging leads to an organic categorisation and annotation of data which has been termed \textit{folksonomy}\footnote{http://www.vanderwal.net/folksonomy.html -- a portmanteau of \textit{folk} and \textit{taxonomy} }. In a sufficiently large and active community, the folksonomy that can be extracted becomes a good source of input for the algorithms in a recommender system. 
+The Web is rife with successful recommender systems, with companies such as \textit{Amazon, Netflix\footnote{In 2006 Netflix challenged programmers to improve their movie recommendation engine by 10\%.}} and \textit{Pandora} (radio service backed by \textit{The Music Genome Project}\footnote{\url{http://www.pandora.com} -- The MGP uses the``genealogy'' of music to link songs and artists}) investing a lot of time and money in improving their algorithms and data quality to better recommend items of interest to their users. On the other hand, more directly community-driven websites such as \textit{del.icio.us} and \textit{flickr} have harnessed the collective intelligence of their users and their tagging of their content with keywords. Collaborative tagging leads to an organic categorisation and annotation of data which has been termed \textit{folksonomy}\footnote{\url{http://www.vanderwal.net/folksonomy.html} -- a portmanteau of \textit{folk} and \textit{taxonomy} }. In a sufficiently large and active community, the folksonomy that can be extracted becomes a good source of input for the algorithms in a recommender system. 
 
-With the accelerating growth of social networks such as Twitter and Facebook, the value of social recommendations which aim to increase the connections between individuals is more important that it used to be: the items of interests are now other users not products on sale (though from an advertising revenue perspective the difference is blurred). Recommender systems are nearing maturity and will soon be, if they are not already, commodity technologies as the ``social connections layer'' of virtual communities is completed\footnote{The ``game layer'' is the next stage in building virtual communities, the founder of SCVNGR argues - http://www.ted.com/talks/seth\_priebatsch\_the\_game\_layer\_on\_top\_of\_the\_world.html}. This means that an analysis of such systems is essential to the understanding of social networking and the Web as it experiences a paradigm shift from a \emph{search} paltform (e.g. Google) to a \emph{discovery} platform.
+With the accelerating growth of social networks such as Twitter and Facebook, the value of social recommendations which aim to increase the connections between individuals is more important that it used to be: the items of interests are now other users not products on sale (though from an advertising revenue perspective the difference is blurred). Recommender systems are nearing maturity and will soon be, if they are not already, commodity technologies as the ``social connections layer'' of virtual communities is completed\footnote{The ``game layer'' is the next stage in building virtual communities, the founder of SCVNGR argues -- \url{http://www.ted.com/talks/seth_priebatsch_the_game_layer_on_top_of_the_world.html}}. This means that an analysis of such systems is essential to the understanding of social networking and the Web as it experiences a paradigm shift from a \emph{search} platform (e.g. Google) to a \emph{discovery} platform.
 
 \section{Starting Point}
 
-I am familiar with the RESTful\footnote{Representational State Transfer-style access to data over HTTP/1.1. This particular API responds to requests in the JSON data interchange format.} API provided by Mixcloud which I have already begun obtaining data from, and I have an understanding of how the website's codebase. What I have learned from some of the Computer Science Tripos courses such as Artificial Intelligence I, Digital Communications I and Databases will likely help me along the way.
+I am familiar with the RESTful\footnote{Representational State Transfer-style access to data over HTTP/1.1. This particular API responds to requests in the JSON data interchange format.} API provided by Mixcloud which I have already begun obtaining data from. At the time of writing, I have collected data on approximately 20000 users by performing a breadth-first search on the social connections of a few hand-picked seed users. 
+
+What I have learned from some of the Computer Science Tripos courses such as Artificial Intelligence I, Digital Communications I and Databases will likely help me along the way.
 
 The type of algorithms I will be using in this project will be new to me and my only exposure to them is in reading the relevant literature.
   
 \section{Substance and Structure of the Project}
 
-The data for the project will be obtained over the Mixcloud API as JSON objects and stored in the documented-oriented database, MongoDB. This will involve writing a crawler application to explore the social and content graph of Mixcloud via its API and save the relevant result in a useful way.
+The data for the project will be obtained over the Mixcloud API as JSON objects and stored in the documented-oriented database, MongoDB. This will involve writing a crawler application to explore the social and content graph of Mixcloud via its API and save the relevant result in a useful way. As mentioned above, I have already begun doing this, writing a wrapper for the API in Python to use in my crawler application.
 
 As I mentioned in the above section, I have no prior experience of the types of processing and algorithms used in building recommender systems and therefore I will have to spend some time examining the existing literature and open source code.
 
@@ -138,43 +141,18 @@ Similarly, a metric for measuring social relevance -- whether a user-user pairin
 \end{itemize}
 
 The actual distance metrics that I will use will be subject to other implementation details. 
-%TODO: Jaccard distance, Hamming distance, Formal Concept Analysis
-
-% \subsection*{Processing the Data}
-
-% TODO: implementation and performance issues
 
 \subsection*{Classification and Filtering}
 
 The fundamental process that my proposed recommender system will perform is to classify a relationship between two entities as either existing or not existing, taking into account the distance metrics discussed above. Given two users, two Cloudcasts, or a user and a Cloudcast, should a recommendation be made for linking them? The decision to be made is a binary one and the family of machine learning techniques used for this kind of processing are \emph{binary classifiers}. These are a class of algorithms which employ probabilistic models derived from some training data to make prediction about further unseen data.
 
-Reading the relevant literature, the classic approach to making recommendations is to use \emph{Collaborative Filtering} (CF) techniques, which aim to make predictions for a given user or item based on data available for similar users or items. CF techniques can be split into two main types: memory-based and model-based. I am more interested in the model-based solutions to CF because I wish to build a recommender system that identifies complex patterns in data using machine learning techniques, as mentioned above. The memory-based approach is simple to implement but limited - essentially large sparse matrices of entity relationships/distances are stored and for a given entity the highest ranking corresponding entities are given as recommendation. This naturally has the problem that for changes in the set of entities recomputation of the matrices is required and also with large data sparsity, the computational performance of the system suffers.
-
-% Supervised Learning (training set provided): Binary classification - Bayesian networks, decision trees, Support Vector Machines, Neural networks
-
-% Unsupervised Learning (no training set): Hierarchical clustering \& choice of distance metrics
-
-% Collaborative Filtering: Memory-based (neighbourhood search, Locality Sensitive Hashing, correlation measures) vs. Model-based (see Supervised Learning and clustering)
-
-% An initial idea as to how I might utilise my folksonomy data is by constructing bi- or tripartite graphs that link tags, content and users. The links between the items in these graphs can give us approximations of a user's preferences, or tell us which pieces of content may be related to each other, and a score can be computed about the strength of the connection between two items or users. It may be that several bipartite graphs (tags-content, content-users, users-users etc.) give better results than one very large tripartite graph and I would be interested to see how different approaches compare. The scores calculated at this stage would be essential for the next stage, filtering out recommendations.
-
-% The family of techniques most commonly used in recommender systems for information filtering is known as Collaborative Filtering. These techniques attempt to extract patterns and information using data sourced from several entities, users and agents such as those in my dataset. The scores obtained from my structuring of the data as explained in the above paragraph can be put to use here. I will start by experimenting with these techniques and then explore others, either variations of the standard CF methods or new novel ones. There is scope to put the focus of the information filtering on the users, the content (Cloudcasts), or find the point of balance that gives the best results. Deep analysis of either social behaviour of the user or the content will give rise to different sets of recommendations each of which may be suitable for different purposes.
+Reading the relevant literature, the classic approach to making recommendations is to use \emph{Collaborative Filtering} (CF) techniques, which aim to make predictions for a given user or item based on data available for similar users or items. CF techniques can be split into two main types: memory-based and model-based. I am more interested in the model-based solutions to CF because I wish to build a recommender system that identifies complex patterns in data using machine learning techniques, as mentioned above. The memory-based approach is simple to implement but limited -- essentially large sparse matrices of entity relationships/distances are stored and for a given entity the highest ranking corresponding entities are given as recommendation. This naturally has the problem that for changes in the set of entities recomputation of the matrices is required and also with large data sparsity, the computational performance of the system suffers.
 
 \section{Success Criterion}
 
-The main method of evaluation I will use to judge the success of the recommender system I write will be cross-validation of the system performance over samples of the dataset. This is a common technique for assessing the performance of a supervised learning system which aims to make predictions on some test data, given some training data. This process would involve splitting the dataset into some number $n$ of disjoint partitions and for each partition removing some of the links between entities. The system is then optimised for a making recommendations that repair the broken links in a size $k, (k < n)$ subset of these partitions (the training data) and comparing its performance on the remaining $(n-k)$ partitions (the test data). Some of the metrics that can be used to measure the performance of the system are the precision (the proportion of the results that are correct ones) and recall (the proportion of the correct items that appear in the result) rates \footnote{http://www.cs.ualberta.ca/\textasciitilde eisner/measures.html -- this page describes the terms \textit{recall, precision, accuracy and specificity} in the context of classifier performance evaluation.} . 
-
-% Improvements in these and any other measures over the course of the project will mark its success and I expect to reach a reasonable, usable level of precision by the end.
+The main method of evaluation I will use to judge the success of the recommender system I write will be cross-validation of the system performance over samples of the dataset. This is a common technique for assessing the performance of a supervised learning system which aims to make predictions on some test data, given some training data. This process would involve splitting the dataset into some number $n$ of disjoint partitions and for each partition removing some of the links between entities (nodes in the network). The system is then optimised for making recommendations that repair the broken links in some $k, (k < n)$ subset of these partitions (the training data) and comparing its performance on the remaining $(n-k)$ partitions (the test data). Some of the metrics that can be used to measure the performance of the system are the precision (the proportion of the results that are correct ones) and recall (the proportion of the correct items that appear in the result) rates\cite{eval_measures} in the context of classifier performance evaluation. 
 
 \section{Extension Ideas}
-
-% \subsection*{Different Datasets}
-
-% I have opted to use the Mixcloud.com dataset as it has not been analysed before, but there are many datasets publicly available which are traditionally used to experiment with recommender systems. These include the MovieLens dataset (movie ratings by users), Jester Joke dataset (joke ratings), and Book-Crossing dataset (book ratings). There are other datasets I could potentially use, for instance data from \emph{MyPersonailty.info}, a collaborator with the Social Psychology department at Cambridge who are gathering personality data using a Facebook application, which puts the data within the social of the Facebook Graph. It is possible that I have time to analyse these datasets and implement recommender systems with different focii - item recommendations where social links are not a part of the data (the traditional datasets which lack direct social connections), and deeper social analysis in the case of MyPersonailty data.
-
-% \subsection*{Scalability and Latency}
-% Thinking ahead about possible extensions for this project, a limitation\footnote{http://www.readwriteweb.com/archives/recommendation\_systems\_where\_we\_need\_to\_go.php} of some current recommender systems is the latency of the recommendation generation after changes in user behaviour, item data and the relationships therein. Especially for large datasets a more ``real time'' performance would be desirable for a recommender system. In particular, I know that Mixcloud's personalised recommendations for users are computed as a batch job overnight on their server, which is effective for them but I wonder if there is more elegant solution with scalable properties, taking advantage of distributed processing power. A possible approach might be to periodically and incrementally update a stored set of recommendations after a sufficient number of changes occur.
-
 
 \subsection*{The Temporal Dimension}
 If I am able to obtain several snapshot of the social network across time, perhaps at 3-4 week intervals, I could use the snapshots as a means of evaluation by comparing recommendations made for the network at time (snapshot) $t-1$ with the changes made to the network at time $t$. This method of evaluation of the recommender system will compare the performance of the recommender system against the organic growth and changes in the real network since a previous snapshot.
@@ -189,65 +167,71 @@ See attached Project Resource Form. I have included a summary below:
 \item My own Laptop PC (Intel Core 2 Duo T6400 2.0GHz, 4GB RAM, 500GB HHD)
 \end{itemize}
 
-% For my extension ideas, I may also use some PC's over a network for high-performance processing of large datasets. For this I will use my Linksys 4-port router and out-of-circulation (but healthy) PC's from my college's Computer Support department.
-
-
 \section{Timetable and Milestones}
 
 From the official beginning of this project on Fri 23rd October until the submission deadline of Fri 20th May, there are 30 weeks which I have timetabled as follows:
 
-\textbf{22 Oct - Submission of this Proposal}
+\textbf{22 Oct -- Submission of this Proposal}
 
-\textbf{23 Oct - 5 Nov}
+\textbf{23 Oct -- 5 Nov}
 
-Have a usable sample of the dataset gathered from the Mixcloud API and be comfortable with manipulating the data programmatically.
+Have a usable sample of the dataset gathered from the Mixcloud API and be comfortable with manipulating the database programmatically.
 Ensure backup strategies and project management practices are in place.
-% Obtain database, set it up for easy access and familiarise myself with it.
-% Plan the structure of the recommender system, implementation language and tools based on literature and current solutions.
 
-\textbf{6 Nov - 19 Nov}
+\textbf{6 Nov -- 26 Nov}
 
-% Practise using new tools or languages and implement simple algorithms.
-% Have an understanding of the major methods and algorithms used currently and the mathematics behind them.
-% Experiment with structuring and processing of data in n-partite graph form and note any observations about the usefulness of this technique.
+Implement the basic methods for calculating distance metrics.
+Ensure I have an understanding of the mathematical properties of the metrics and their suitability for my application.
 
-\textbf{20 Dec - 3 Dec}
+\textbf{27 Nov -- 10 Dec}
 
-% Have a simple prototype coded that uses the data from the database and achieves simple but meaningful output, approaching a standard worthy of presenting at the Progress Report. The ``Slope One'' technique of Collaborative Filtering, one of the simplest, should by now be implemented, given that everything else has gone smoothly.
+Implement some classifiers and Collaborative Filtering algorithms with appropriate distance metrics - these should produce meaningful output given some small simple input.
+At the end of this time, I should be comfortable with the various data structures, algorithms and techniques available to me to implement a recommender system.
+I also need to ensure that I understand all the evaluation methods available for these techniques.
 
-\textbf{4 Dec - 17 Dec}
+\textbf{11 Dec -- 7 Jan}
 
-% Extend the implementation of the simple CF techniques to more complex ones and try any new ones discovered in literature.
-% Start planning out the dissertation. The beginning sections, Introduction and Preparation, should fleshed out by now.
+Using knowledge gained so far, build a recommender system that produces meaningful results given a large, realistic input, combining and experimenting with different techniques as discussed above.
 
-\textbf{18 Dec - 7 Jan}
+\textbf{8 Jan -- 21 Jan}
 
-% Prepare presentation and code sufficiently for progress report.
+Start planning out the dissertation, with the Introduction and Preparation chapters being nearly complete and the Implementation chapter beginning to take form.
 
-\textbf{8 Jan - 21 Jan}
+\textbf{22 Jan -- 3 Feb}
 
-\textbf{22 Jan - 3 Feb}
+Prepare for the progress report by testing the working recommender system and doing preliminary evaluation on it. Producing some visualisations and graphics from the data and the output will also be helpful for this, as well as for the final dissertation. 
+Produce the presentation for progress report.
 
-\textbf{4 Feb - Submission of Progress Report}
+\textbf{4 Feb -- Submission of Progress Report}
 
-\textbf{5 Feb - 18 Feb}
+\textbf{5 Feb -- 18 Feb}
 
-% Work on any feedback from progress report and begin experimenting hybrid techniques.
-% Set out a clear plan for testing the performance of the recommender, including the type of measurements to be taken and comparisons to draw.
+Work on any feedback from progress report.
+Begin work on more advanced techniques or novel approaches that I may have come up with after using the data, e.g. Temporal Analysis.
+Set out a clear plan for evaluating the performance of the recommender, including the type of measurements to be taken and comparisons to draw.
 
-\textbf{19 Feb - 4 Mar}
+\textbf{19 Feb -- 4 Mar}
 
-% Analyse performance of code so far and move onto extensions if feasible.
-% Final clean up of code and extensions.
-% Dissertation document is regularly updated during this time and the Implementation section has taken form.
+Analyse performance of the system and move onto extensions in earnest.
+Final clean up of code and extensions.
+Dissertation document is regularly updated during this time and the Implementation section has taken form.
 
-\textbf{5 Mar - 25 Mar}
+\textbf{5 Mar -- 25 Mar}
 
-% Dissertation is comfortably on target in terms of content and word limit.
-% Identify weaknesses in code and write-up, then address them.
+Dissertation is comfortably on target in terms of content and word limit.
+Identify weaknesses in code and documentation, and address them.
 
-\textbf{26 Mar - 13 May}
+\textbf{26 Mar -- 13 May}
 
 Final proof reading of dissertation and aim to submit a week before deadline.
 
-\textbf{20 May - Submission of Dissertation}
+\textbf{20 May -- Submission of Dissertation}
+
+\begin{thebibliography}{}
+ \bibitem{eval_measures} R. Eisner, Basic Evaluation Measures for Classifier Performance -- \url{http://www.cs.ualberta.ca/~eisner/measures.html} -- this page describes the terms \textit{recall, precision, accuracy and specificity}.
+ \bibitem{eval_cfsys} J. L. Herlocker et al., Evaluating Collaborative Filtering Recommender Systems, ACM Transactions on Information Systems, Vol. 22, No. 1, January 2004
+ \bibitem{survey_cf} X. Su et al, A Survey of Collaborative Filtering Techniques, Advances in Artificial Intelligence, Volume 2009
+ \bibitem{analysis_recsys_algs} E. Vozalis et al., Analysis of Recommender Systems’ Algorithms
+
+
+\end{thebibliography}
