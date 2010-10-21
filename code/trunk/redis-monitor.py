@@ -35,6 +35,7 @@ try:
         prev_uq_cnt = curr_uq_cnt
         curr_uq_cnt = cache.llen(user_q)
         print "Queued:".rjust(8), str(curr_uq_cnt).rjust(8), "| delta:", curr_uq_cnt-prev_uq_cnt
+	print "Current Expected Total:", curr_us_cnt+curr_ut_cnt
         print "Last save:", cache.lastsave()
         print 
         sleep(30)
