@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# Script to retrieve and save the cloudcasts associated with users already in 
+# the database. Only had to use this when I had a list of users without metas.
+
+
 import json
 import pymongo
 from redis import Redis
