@@ -46,6 +46,7 @@ def findDeadUserRefs():
 
 
 def findCountMismatch():
+    
     # Find users with complete documents
     cursor = user_coll.find(
 	    spec={"username": {"$exists": True} }, 
@@ -67,7 +68,36 @@ def findCountMismatch():
                
                 statfile.writerow(row)
 
+def correctFavCount():
+    # unzips the conn_types tuple list
+#    just_conns = zip(*conn_types)
+#    if conn not in just_conns[0]:
+#        print "Incorrect metaconnection type used."
+#        return
+    cursor = user_coll.find(
+        spec={"username": {"$exists": True} }, 
+        fields=["favorites", "favorite_count"],
+        timeout=False)
+
+    correct_counts = {}
+
+    for user in cursor:
+        if ( len(user["favorites"]) != user["favorite_count"] ):
+            correct_counts[user["_id"]] = len(user["favorites"])
+
+    for each_id in correct_counts.keys():
+        user_coll.update(
+            spec={"_id": each_id},
+            document={"$set": {"favorite_count": correct_counts[each_id]} }
+        )
+
+def correctZeroCloudCount():
+    user_coll.update(
+        spec={"cloudcast_count": 0 },
+        document={"$set": { "cloudcasts": []} }
+    )
+
 if __name__ == "__main__":
     import sys
-    findCountMismatch()
+    correctFavCount()
 
