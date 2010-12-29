@@ -2,140 +2,191 @@
 
 from time import sleep
 from urllib import urlencode
-from httplib import HTTPConnection, HTTPException, BadStatusLine
+from httplib import HTTPException
+import httplib2
 import json
 
-default_api = "api.mixcloud.com"
+from base_resources import InteractiveResource, AnnotationResource, CategoryResource
+import dynamic_resources as dyn_rsrc
+
+from settings import METACONNS, RESPECT_TIME, DEFAULT_METACONN_WHITELIST, DEFAULT_METACONN_BLACKLIST, default_api
+
 
 class MixcloudAPI():
-
     def __init__(self):
-        self.connection = None
-        self.connectToAPI()
+        self.open_connection()
+        self.metaconns_whitelist = DEFAULT_METACONNS_WHITELIST
+        self.metaconns_blacklist = DEFAULT_METACONNS_BLACKLIST
 
-        # words used in resource keys of "metadata connections" on mixcloud
-        self.metaconn_keys = [
-            "comments","favourites","followers","following","listens", "cloudcasts",
-            "similar", "popular", "new", "users", 
-            "userpick-users", "userpick-cloudcasts"
-        ]
-
-    def connectToAPI(self, api_address=default_api):
-        """Makes connection to the API server."""
-        self.connection = HTTPConnection(api_address)
-
-    def getFromAPI(self, resource_string, as_obj=True, respect=0.25):
-        """Connects to the specified server and returns the JSON data of the given resource from the Mixcloud API, as a Python object by default."""
-
-        sleep(respect) # just out of respect
-#        try:
-        self.connection.request("GET",resource_string)
-        api_response = self.connection.getresponse()
-        if api_response.status != 200:
-            if api_response.status == 403:
-                raise MixcloudAPIException((int)(api_response.getheader("retry-after")))
-            raise HTTPException(api_response.status)
-        if as_obj:
-            api_output = json.load(api_response)
-            return api_output
-        # Otherwise just return string representing the JSON
-        else:
-            api_output = api_response.read()
-            return api_output
-
-    def getBaseURL(self, *resource_key):
-        """Return the suffix part of the URL of a Mixcloud API object given a
-tuple of strings constituting the key."""
-        key = "/".join(resource_key)
-        key = "/" + key + "/"
-        return key
-
+    def open_connection(self):
+        """Open a httplib2 connection which is persistent under HTTP/1.1."""
+        self.connection = httplib2.Http()
         
-    def addURLParams(self, resourceURL, force_meta=True, **params):
-        """Add the parameters specified in params as GET arguments to the end 
-of the URL, forcing the metadata=1 parameter by default."""
-        # If indicated, make sure "metadata" parameter is set to 1
-        if force_meta: params.update(metadata=1)
-        enc_params = urlencode(params)
-        return resourceURL + "?" + enc_params
+    def reset_connection(self, uri):
+        del self.connection
+        self.open_connection()
 
-        
-    def getResourceURL(self, *resource_key, **params):
-        """First get the base suffix part of URL from provided resource key 
-tuple and then add HTTP GET parameters, returning the result."""
-        base = self.getBaseURL(*resource_key)
-        full = self.addURLParams(base,**params)
-        return full
+    def get_from_API(self, obj):
+        """First get the base path of the object from its resource key and
+        then pass to request() with parameters."""
+        if obj.paged:
+            return self.get_from_API_paged(obj)
+        uri = self.get_uri(obj.resource_key, obj.resource_params)     
+        return self.request(uri)
 
-
-class MetaConnection():
-    """Class to faciliate the traversal of metadata connections provided by 
-resources, including pagination."""
-    def __init__(self, api, baseURL, **params):
-        self.api = api
+    def get_from_API_paged(self, obj):
+        uri = self.get_uri(obj.resource_key, obj.resource_params)
+        # Accumulate data over pages in a book
+        book = []
+        page = self.request(uri)
         try:
-            self.limit = params["limit"]
+            book.append(page["data"])
+            while ( ("paging" in page.keys()) and
+                    ("next" in page["paging"].keys()) ):
+                uri = page["paging"]["next"]
+                page = self.request(uri)
+                book.append(page["data"])                
         except KeyError:
-            self.limit = 100
-        try:
-            self.curr_offset = params["offset"]
-        except KeyError:
-            self.curr_offset = 0
-        self.baseURL = baseURL
-        self.init_page = self.api.addURLParams(baseURL, False, **params)
-        # init next_page to current page so that getNextPage() can work as expected
-        self.next_page = self.init_page
-        # initiliase to true but change as appropriate on getNextPage()
-        self.has_next = True 
+            print "KeyError in get_from_API_paged() on:"
+            print uri
+        # Return uncurated data book, with all the junk
+        return book
 
-    def hasNext(self):
-        return self.has_next
-
-    def getNextPage(self):
-        # Fetch first page as Python object
-        page = None
-        try:
-            page = self.api.getFromAPI(self.next_page)
-        except MixcloudAPIException as apie:
-            print "Error during pagination: Mixcloud is blocking requests."
-            self.api.connection.close()
-            retry = apie.getRetry()
-            print "Retrying after", retry ,"seconds ..."
-            sleep(retry+1)
-            print "Ping!"
-            self.api.connectToAPI()            
-            page = self.api.getFromAPI(self.next_page)
-        except HTTPException as he:
-            print "Unknown HTTPException occurred during pagination."            
-            print he.args
-            print "Retrying again in 5 seconds..."
-            self.api.connection.close()
-            sleep(5)
-            print "Ping!"
-            self.api.connectToAPI()            
-            page = self.api.getFromAPI(self.next_page)
             
-        # if next page exists, update fields as appropriate
-        if ( ("paging" in page.keys()) and 
-             ("next" in page["paging"].keys()) ):
-            self.has_next = True
-            self.curr_offset += self.limit
-            self.next_page = self.api.addURLParams(
-                self.baseURL, False, offset=self.curr_offset, limit=self.limit
-            )
-        # If last page, nullify fields
-        else:
-            self.has_next = False
-            self.next_page = None
-        return page
-             
-    def resetPage(self):
-        self.next_page = self.init_page
-        self.has_next = True
+    def get_uri(self, resource_key, params):
+        path = self.get_path(*resource_key)
+        path = self.add_params(path, **params)
+        return default_api + path
+
+    def get_path(self, *resource_key):
+        """Return the path, relative to API's root, to the object object given
+         the key."""
+        path = "/".join(resource_key)
+        path = "/" + path + "/"
+        return path
+
+    def add_params(self, base, **params):
+        """Add the parameters specified in params as GET arguments to the end 
+        of the URI."""
+        # If indicated, make sure "metadata" parameter is set to 1
+        enc_params = urlencode(params)
+        return base + "?" + enc_params
+
+    def request(self, uri, respect=RESPECT_TIME):
+        """Request object at path from the server and return the JSON data of 
+        the given resource as a Python object."""
+        content = None
+        sleep(respect) # just out of respect for the API server
+        # While loop to force retry if blank returned
+        while (not content):
+            resp, content = self.connection.request(uri)
+            if resp.status != 200:
+                if resp.status == 403:
+                    raise MixcloudAPIException((int)(resp["Retry-After"]))
+                raise HTTPException(resp.status)
+        api_output = json.loads(content)
+        return api_output
+    
+    def set_metaconns_blacklist(self, *list):
+        self.metaconns_blacklist = []
+        for i in list:
+            if i not in METACONNS:
+                continue
+            self.metaconns_blacklist.append(i)
+    
+    def set_metaconns_whitelist(self, *list):
+        self.metaconns_whitelist = []
+        for i in list:
+            if i not in METACONNS:
+                continue
+            self.metaconns_whitelist.append(i)
+
+
+class User(InteractiveResource):
+    def __init__(self, api, username):
+        InteractiveResource.__init__(self, api, username)
+        # Augment the User resource with dynamic resources further to those
+        # inherited from InteractiveResource
+        self.dyn_resources.update({
+            "feed": dyn_rsrc.Feed(username),
+            "followers": dyn_rsrc.Followers(username),
+            "following": dyn_rsrc.Following(username),
+            "cloudcasts": dyn_rsrc.Cloudcasts(username),
+            "listens": dyn_rsrc.Listens(username)
+        })
+
+    def populate(self):
+        """Run this after initialising an instance to gather all relevant data."""
+        try:
+            self.fetch_data()
+            self.populate_metaconns()
+        except MixcloudAPIException:
+            pass
+        except HTTPException:
+            pass
+        # for MongoDB's benefit, set _id field to username, which is unique
+        self.data["_id"] = username
+        
+    def get_user_id(self):
+        return self.data["_id"]
+    
+    def get_followers(self):
+        return self.data["followers"]
+    
+    def get_following(self):
+        return self.data["following"]
+    
+    def get_favorites(self):
+        pass
+    
+    def get_cloudcasts(self):
+       pass
+    
+    def get_listens(self):
+        pass
+    
+    def get_favorited_users(self):
+        pass
+    
+    def get_listened_to_users(self):
+        pass
+    
+    def get_social_connections(self):
+        return self.get_followers() + self.get_following()
+    
+    
+class Cloudcast(InteractiveResource):
+    def __init__(self, api, username, cloudcast):
+        InteractiveResource.__init__(self, api, username, cloudcast)
+        self.dyn_resources.update({
+            "similar": dyn_rsrc.Similar(username, cloudcast),
+            "listeners": dyn_rsrc.Listeners(username, cloudcast)
+        })
+        try:
+            self.fetch_data()
+        except MixcloudAPIException as apie:
+            pass
+        except HTTPException as he:
+            pass
+
+class Tag(AnnotationResource):
+    def __init__(self, api, tag):
+        AnnotationResource.__init__(self, api, tag)
+        
+class Artist(AnnotationResource):
+    def __init__(self, api, artist):
+        AnnotationResource.__init__(self, api, artist)
+
+class Track(AnnotationResource):
+    def __init__(self, api, artist, track):
+        AnnotationResource.__init__(self, api, artist, track)
+
+class Category(CategoryResource):
+    def __init__(self, api, cat):
+        CategoryResource.__init__(self, api, cat)
         
 class MixcloudAPIException(HTTPException):
     def __init__(self, retry):
         self.retry = retry
-    def getRetry(self):
+    def get_retry(self):
         return self.retry
-
