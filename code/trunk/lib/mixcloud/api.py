@@ -10,11 +10,21 @@ from settings import (METACONNS, RESPECT_TIME, DEFAULT_API, DEBUG,
                       DEFAULT_METACONNS_WHITELIST, DEFAULT_METACONNS_BLACKLIST)
 
 class MixcloudAPIException(HTTPException):
-    def __init__(self, retry):
-        HTTPException.__init__(self)
+    def __init__(self, uri, status_code, *args):
+        HTTPException.__init__(self, uri, status_code, args)
+        self.uri = uri
+        self.status = status_code
+        self.message = str(self.status) + ": Problem accessing " + uri + "."
+
+
+class MixcloudAPIRateLimitException(MixcloudAPIException):
+    def __init__(self, uri, retry, status_code=403, *args):
+        HTTPException.__init__(self, uri, status_code, retry, args)
+        self.uri = uri
         self.retry = retry
-    def get_retry(self):
-        return self.retry
+        self.status = status_code
+        self.message = (str(self.status) + ": Rate limit hit, retry after " 
+                        + str(self.retry) + " seconds.")
 
 
 class MixcloudAPI():
@@ -33,7 +43,7 @@ class MixcloudAPI():
     @classmethod        
     def get_path(cls, resource_key):
         """Return the path, relative to API's root, to the object object given
-         the key."""
+         the key."""                     
         path = "/".join(resource_key)
         path = "/" + path + "/"
         return path
@@ -91,8 +101,12 @@ class MixcloudAPI():
             resp, content = self.connection.request(uri)
             if resp.status != 200:
                 if resp.status == 403:
-                    raise MixcloudAPIException((int)(resp["Retry-After"]))
-                raise HTTPException(resp.status)
+                    raise MixcloudAPIRateLimitException(
+                                                        uri=uri, 
+                                                        retry=int(resp["retry-after"]))
+                elif resp.status == 404:
+                    raise MixcloudAPIException(uri, resp.status)
+                raise MixcloudAPIException(uri, resp.status)
         api_output = json.loads(content)
         return api_output
     

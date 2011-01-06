@@ -8,7 +8,7 @@ DEFAULT_API = "http://api.mixcloud.com"
 
 # words used in resource keys of "metadata connections" on mixcloud
 METACONNS = [
-    "comments","favourites","followers","following","listens", "cloudcasts",
+    "comments","favorites","followers","following","listens", "cloudcasts",
     "similar", "popular", "new", "users", "listeners",
     "userpick-users", "userpick-cloudcasts"
 ]

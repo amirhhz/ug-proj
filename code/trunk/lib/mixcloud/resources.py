@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 
 from httplib import HTTPException
+from api import MixcloudAPIException, MixcloudAPIRateLimitException
 import time
+from time import sleep
 import json
 
 from settings import DEBUG
 from settings import ANNOTATION_TYPES, CATEGORIES, SEARCH_TYPES, ITEMS_PER_PAGE
+
+
+class MixcloudResourceException(Exception):
+    def __init__(self, resource, *args):
+        Exception.__init__(self, str(resource), args)
 
 
 ################################################################################
@@ -20,7 +27,7 @@ class Resource():
         self.api = api
         self.resource_key = []
         self.resource_params = {}
-        self.data = None
+        self.data = {}
 
     def __str__(self):
         return "Mixcloud API Resource: ", "/".join(self.resource_key)
@@ -35,12 +42,20 @@ class Resource():
         """Fetch the main, first-level data about the resource from the API.
         Note that this OVER-WRITES whatever is currently stored in the data
         field."""
-        self.data = self.api.get_from_API(self)
+        try:
+            self.data = self.api.get_from_API(self)
+        except MixcloudAPIRateLimitException, rate_error:
+            print rate_error.message
+            print "Waiting to retry ..."
+            sleep(rate_error.retry)
+            self.fetch_data()
+        except MixcloudAPIException, misc_error:
+            raise misc_error         
     
     def get_data(self):
         """ Return the data stored for the resource, fetch it if it doesn't
         exist yet."""
-        if self.data is None:
+        if not self.data:
             self.fetch_data()
         return self.data
 
@@ -101,11 +116,11 @@ class BaseResource(Resource):
     def get_field(self, fieldname):
         try:
             return self.data[fieldname]
-        except KeyError as k:
-            print k
-            print "Could not find", fieldname, "in data. Ensure you have \
-            populated the object's data field with get_data() or populate()."        
-                 
+        except KeyError:
+            raise MixcloudResourceException(self,
+                                            "requested field not found in this resource",
+                                            fieldname)
+                
 
 class InteractiveResource(BaseResource):
     """The User and Cloudcast resources are this class's children, as they have
@@ -153,13 +168,6 @@ class CategoryResource(BaseResource):
 ################################################################################
 ## DYNAMIC RESOURCES ###########################################################
 ################################################################################
-
-
-class DynRsrcException(Exception):
-    def __init__(self, rsrc_type):
-        Exception.__init__(self)
-        self.rsrc_type = rsrc_type
-
 
 class DynResource(Resource):
     def __init__(self, api):
@@ -294,7 +302,8 @@ class Categories(DynResource):
     def __init__(self, api, cat):
         DynResource.__init__(self, api)
         if cat not in CATEGORIES:
-            raise DynRsrcException("Categories")
+            self.resource_key = ["categories"]
+            raise MixcloudResourceException(self, "Invalid category", cat)
         self.cat = cat        
         self.resource_key = ["categories", cat]
 
@@ -321,7 +330,10 @@ class Search(DynResource):
     def __init__(self, api, search_str, search_type):
         DynResource.__init__(self, api)
         if search_type not in SEARCH_TYPES:
-            raise DynRsrcException("Search")
+            self.resource_key = ["search"]
+            raise MixcloudResourceException(self, 
+                                            "Invalid search type used",
+                                            search_type)
         self.resource_key = ["search"]
         self.resource_params.update({"q": search_str, "type": search_type})
 
@@ -377,7 +389,7 @@ class UserpickCloudcasts(DynResource):
 
 class User(InteractiveResource):
     def __init__(self, api, username, until=None):
-        InteractiveResource.__init__(self, api, username, until)
+        InteractiveResource.__init__(self, api, username, until=until)
         # Augment the User resource with dynamic resources further to those
         # inherited from InteractiveResource
         self.dyn_resources.update({
@@ -388,8 +400,16 @@ class User(InteractiveResource):
             "listens": Listens(api, username)
         })
         # for MongoDB's benefit, set _id field to username, which is unique
-        self.data = {}
         self.data["_id"] = self.resource_key[0]
+        
+            
+    def populate(self):
+        InteractiveResource.populate(self)
+        try:
+            self.data["_id"] = self.data["username"]
+        except KeyError, k:
+            raise MixcloudResourceException(self, 
+                                            "username field not found in data.")
             
     def get_user_id(self):
         return self.get_field("_id")
@@ -407,7 +427,7 @@ class User(InteractiveResource):
         return self.get_field("cloudcasts")
     
     def get_cloudcast_slugs(self):
-        return [item[""]]
+        return [item["slug"] for item in self.get_field("cloudcasts")]
     
     def get_listens(self):
         return self.get_field("listens")
