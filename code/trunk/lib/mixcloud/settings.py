@@ -2,7 +2,7 @@
 
 ### API settings ###
 
-DEBUG = True
+DEBUG = False
 
 DEFAULT_API = "http://api.mixcloud.com"
 

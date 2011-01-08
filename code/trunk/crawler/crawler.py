@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 
-import json
-import pymongo
-from redis import Redis
-
-from mixcloud.api import MixcloudAPI
+from mixcloud.api import MixcloudAPI, MixcloudAPIException
 from mixcloud.resources import User
 from settings import MONGO_COLLECTION, CACHE, USER_QUEUE, USER_TODO, USER_SET
+from settings import DEBUG
 
 
 # Get the Mixcloud API
@@ -38,25 +35,37 @@ class UserCrawler:
         self.todo_set = todo_set
         self.done_set = done_set
         
+        self.sync_cache_with_store()
+        
         for each in seed_list:
             items_added = 0
             if self.add_to_todo(each):
                 items_added += 1
-            print items_added, "seed users were added to the to-do list."
+        print items_added, "seed users were added to the to-do list."
         
     def __str__(self):
-        pass
+        done = self.cache.scard(self.done_set)
+        todo = self.cache.scard(self.todo_set)
+        return "Crawler - done: " + str(done) + ", todo: " + str(todo) 
     
     def start(self):
         while not self.is_todo_empty():
             parent = self.get_next_user()
             self.enqueue_user_connections(parent)
-            store_user(parent)
+            self.store_user(parent)
 
     def get_next_user(self):
         next = self.pop_from_todo()
-        next_user = User(self.api, next)
-        next_user.populate()
+        try:
+            next_user = User(self.api, next)
+            next_user.populate()
+        except MixcloudAPIException, mce:
+            # This handles the case of a missing/renamed user, by just skipping
+            # it and returning the next user 
+            if mce.status_code == 404:
+                return self.get_next_user()
+            else:
+                raise mce
         return next_user
     
     def enqueue_user_connections(self, user_obj):
@@ -65,17 +74,23 @@ class UserCrawler:
             self.add_to_todo(each)
 
     def store_user(self, user_obj):
-        ### TODO
-        ###
-        ###
-        self.pop_from_todo(user_obj.get_user_id())
-        pass
-        
+        to_store = user_obj.get_user_id()
+        try:
+            if not DEBUG:
+                self.store.save(user_obj.get_data(), safe=True)
+        except Exception, error:
+            print error
+            print "Could not save " + to_store + ", re-queuing it."
+            self.add_to_todo(to_store)
+            raise error
+        self.cache.sadd(self.done_set, to_store)
+        print to_store
+
     def add_to_todo(self, item):
         """Only update the todo set and queue if item is not already in to-do 
         set."""
-        if not self.cache.ismember(self.done_set, item):
-            if not self.cache.ismember(self.todo_set, item):
+        if not self.cache.sismember(self.done_set, item):
+            if not self.cache.sismember(self.todo_set, item):
                 self.cache.sadd(self.todo_set, item)
                 self.cache.rpush(self.todo_queue, item)
                 return True
@@ -103,15 +118,37 @@ class UserCrawler:
         else:
             ## !!!FIX: do some fixing!
             self.sync_cache_todo_structs()
-            self.sync_cache_with_store()
             return True
         return False
         
     def sync_cache_with_store(self):
-        pass
+        cursor = self.store.find(spec={"username": {"$exists": True}},
+                                 fields=["username"],
+                                 timeout=False)
+        stored_users = set([each["username"] for each in cursor])
+        
+        cached_done_users = self.cache.smembers(self.done_set)
+        if stored_users != cached_done_users:
+            # Some stored users are missing from the cache
+            if stored_users > cached_done_users:
+                for each in (stored_users - cached_done_users):
+                    self.cache.sadd(self.done_set, each)
+            # Unlikely case that there are items in the cache that aren't in the
+            # store - we trust the store and see update the cache
+            elif stored_users < cached_done_users:
+                for each in (cached_done_users - stored_users):
+                    self.cache.srem(self.done_set, each)
+            # The very unlikely case that the sets overlap but not cover each 
+            # other - again trust the store 
+            else:
+                self.cache.delete(self.done_set)
+                for each in stored_users:
+                    self.cache.sadd(self.done_set, each)
+            
     
     def sync_cache_todo_structs(self):
-        pass
+        curr_queue = self.cache.lrange(self.todo_queue, 0, -1)
+        curr_set = self.cache.smembers(self.todo_set)
         
 
 if __name__ == "__main__":
@@ -125,11 +162,25 @@ if __name__ == "__main__":
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       default=True)
     options, args = parser.parse_args()
-    
-    inlist = None
-    with open(options.input, "r") as infile:
-        inlist = infile.read()
-        inlist = inlist.strip().splitlines()
-    
-    crawler = UserCrawler(inlist, mcapi, crawl_store, crawl_cache)
 
+    inlist = None
+    try:
+        with open(options.input, "r") as infile:
+            inlist = infile.read()
+            inlist = inlist.strip().splitlines()
+    except IOError, io:
+        print io
+        print "Invalid filename."
+        exit()
+
+    try:
+        crawler = UserCrawler(inlist, mcapi, crawl_store, crawl_cache)        
+        crawler.start()
+    except KeyboardInterrupt, k:
+        print k
+        print str(crawler)
+        print "Bye!"
+        exit()
+    except Exception, error:
+        print str(crawler)
+        raise error

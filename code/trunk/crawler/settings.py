@@ -5,6 +5,8 @@ default"""
 from redis import Redis
 import pymongo
 
+DEBUG = False
+
 ################################################################################
 ### MongoDB-specific settings ##################################################
 ################################################################################
@@ -12,7 +14,7 @@ import pymongo
 MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 MONGO_DBNAME = "mixcloud"
-MONGO_COLLECTION_NAME = "user"
+MONGO_COLLECTION_NAME = "user1"
 MONGO_USER = None
 MONGO_PASSWORD = None
 
