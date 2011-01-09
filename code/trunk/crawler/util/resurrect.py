@@ -62,6 +62,7 @@ class Resurrection:
         user.data["follower_count"] = len(user.data["followers"])
         user.data["favorite_count"] = len(user.data["favorites"])
         user.data["cloudcast_count"] = len(user.data["cloudcasts"])
+        user.data["listen_count"] = len(user.data["listens"])
         
     def flush(self):
         from resurrect_settings import MONGO_CONNECTION
