@@ -62,9 +62,14 @@ class UserCrawler:
         except MixcloudAPIException, mce:
             # This handles the case of a missing/renamed user, by just skipping
             # it and returning the next user 
-            if mce.status_code == 404:
-                return self.get_next_user()
-            else:
+            try:
+                if mce.status == 404:
+                    return self.get_next_user()
+                else:
+                    raise mce
+            except AttributeError, ae:
+                print "AttributeError: problem handling API Exception!"
+                print ae.message, ae.args
                 raise mce
         return next_user
     

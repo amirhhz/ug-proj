@@ -50,6 +50,7 @@ class Resource():
             sleep(rate_error.retry)
             self.fetch_data()
         except MixcloudAPIException, misc_error:
+            print misc_error.message
             raise misc_error         
     
     def get_data(self):

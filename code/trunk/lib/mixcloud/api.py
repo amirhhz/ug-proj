@@ -13,16 +13,17 @@ class MixcloudAPIException(HTTPException):
     def __init__(self, uri, status_code, *args):
         HTTPException.__init__(self, uri, status_code, args)
         self.uri = uri
-        self.status = status_code
+        if isinstance(status_code, int):
+            self.status = status_code
+        else:
+            self.status = -1
         self.message = str(self.status) + ": Problem accessing " + uri + "."
 
 
 class MixcloudAPIRateLimitException(MixcloudAPIException):
     def __init__(self, uri, retry, status_code=403, *args):
-        HTTPException.__init__(self, uri, status_code, retry, args)
-        self.uri = uri
+        MixcloudAPIException.__init__(self, uri, status_code, retry, args)
         self.retry = retry
-        self.status = status_code
         self.message = (str(self.status) + ": Rate limit hit, retry after " 
                         + str(self.retry) + " seconds.")
 
