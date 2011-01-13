@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-from mixcloud.api import MixcloudAPI, MixcloudAPIException
+from mixcloud.api import MixcloudAPI, MixcloudAPIException, PROXIES
 from mixcloud.resources import User
 from settings import MONGO_COLLECTION, CACHE, USER_QUEUE, USER_TODO, USER_SET
 from settings import DEBUG
-
-
-# Get the Mixcloud API
-mcapi = MixcloudAPI()
+from pymongo.errors import OperationFailure 
 
 # Get the reference to the collection in the database as specified in settings
 crawl_store = MONGO_COLLECTION
@@ -59,6 +56,10 @@ class UserCrawler:
         try:
             next_user = User(self.api, next)
             next_user.populate()
+        except KeyboardInterrupt, k:
+            # Re-queue the user if interrupted
+            self.add_to_todo(next)
+            raise k            
         except MixcloudAPIException, mce:
             # This handles the case of a missing/renamed user, by just skipping
             # it and returning the next user 
@@ -157,7 +158,6 @@ class UserCrawler:
         
 
 if __name__ == "__main__":
-    import sys
     from optparse import OptionParser
     
     parser = OptionParser()
@@ -178,6 +178,9 @@ if __name__ == "__main__":
         print "Invalid filename."
         exit()
 
+    # Get the Mixcloud API
+    mcapi = MixcloudAPI(PROXIES)
+
     try:
         crawler = UserCrawler(inlist, mcapi, crawl_store, crawl_cache)        
         crawler.start()
@@ -186,6 +189,3 @@ if __name__ == "__main__":
         print str(crawler)
         print "Bye!"
         exit()
-    except Exception, error:
-        print str(crawler)
-        raise error

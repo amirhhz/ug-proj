@@ -16,10 +16,11 @@ user_set = rd_prefix + "userset"
 curr_uq_cnt = cache.llen(user_q)
 curr_ut_cnt = cache.scard(user_todo)
 curr_us_cnt = cache.scard(user_set)
+curr_expected = curr_us_cnt+curr_ut_cnt
 prev_uq_cnt = 0
 prev_ut_cnt = 0
 prev_us_cnt = 0
-
+prev_expected = 0
 try:
     while True:
         print "-"*10, datetime.now(), "-"*20
@@ -35,7 +36,9 @@ try:
         prev_uq_cnt = curr_uq_cnt
         curr_uq_cnt = cache.llen(user_q)
         print "Queued:".rjust(8), str(curr_uq_cnt).rjust(8), "| delta:", curr_uq_cnt-prev_uq_cnt
-	print "Current Expected Total:", curr_us_cnt+curr_ut_cnt
+        prev_expected = curr_expected
+        curr_expected = curr_us_cnt+curr_ut_cnt
+        print "Current Expected Total:", curr_expected, "| delta:", curr_expected-prev_expected
         print "Last save:", cache.lastsave()
         print 
         sleep(30)

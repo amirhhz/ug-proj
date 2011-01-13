@@ -41,3 +41,10 @@ SEARCH_TYPES = ["cloudcast", "user", "tag", "artist", "track"]
 ANNOTATION_TYPES = ["tag", "artist", "track"] 
 
 ITEMS_PER_PAGE = 100
+
+PROXIES = [
+           None, # i.e. normal connection, no proxy
+           # proxy_type 2 is SOCKS5
+           {"proxy_type": 2, "proxy_host": "localhost", "proxy_port": 1337},
+           {"proxy_type": 2, "proxy_host": "localhost", "proxy_port": 1338}
+           ]

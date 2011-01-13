@@ -47,7 +47,7 @@ class Resource():
         except MixcloudAPIRateLimitException, rate_error:
             print rate_error.message
             print "Waiting to retry ..."
-            sleep(rate_error.retry)
+            sleep(rate_error.retry+1) # +1 to account potential clock async-ness
             self.fetch_data()
         except MixcloudAPIException, misc_error:
             print misc_error.message

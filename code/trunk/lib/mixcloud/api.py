@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
+from collections import deque
 from time import sleep
 from urllib import urlencode
 from httplib import HTTPException
 import httplib2
 import json
+import socks
 
-from settings import (METACONNS, RESPECT_TIME, DEFAULT_API, DEBUG,
+from settings import (METACONNS, RESPECT_TIME, DEFAULT_API, DEBUG, PROXIES,
                       DEFAULT_METACONNS_WHITELIST, DEFAULT_METACONNS_BLACKLIST)
 
 class MixcloudAPIException(HTTPException):
@@ -29,12 +31,32 @@ class MixcloudAPIRateLimitException(MixcloudAPIException):
 
 
 class MixcloudAPI():
-    def __init__(self):
+    """This handles connections to api.mixcloud.com, optionally via proxies.
+    
+This class can be an initialised with a list, containing dictionaries (or 
+'None's) providing the parameters to pass on to httplib2.ProxyInfo()."""
+    def __init__(self, list_of_proxies=None):
+
+        if list_of_proxies:
+            self.proxies = deque()
+            for prx_values in list_of_proxies:
+                if prx_values:
+                    self.proxies.append(httplib2.ProxyInfo(**prx_values))
+                    print "Added proxy:", prx_values
+                else:
+                    self.proxies.append(None)
+            self.current_proxy = self.proxies[0]
+        else:
+            self.proxies = []
+            self.current_proxy = None
+
         self.connection = None
         self.open_connection()
         self.metaconns_whitelist = DEFAULT_METACONNS_WHITELIST
         self.metaconns_blacklist = DEFAULT_METACONNS_BLACKLIST
-
+        
+        
+            
     @classmethod        
     def get_uri(cls, resource_key, params):
         path = cls.get_path(resource_key)
@@ -56,9 +78,18 @@ class MixcloudAPI():
         enc_params = urlencode(params)
         return base + "?" + enc_params
 
+    def switch_proxy(self):
+        "Rotate through proxies, if there are any."
+        if self.proxies:
+            self.proxies.rotate()
+            self.current_proxy = self.proxies[0]
+            print "INFO: API blocking: switched proxy..."
+            if self.current_proxy:
+                print str(self.current_proxy.astuple())
+
     def open_connection(self):
         """Open a httplib2 connection which is persistent under HTTP/1.1."""
-        self.connection = httplib2.Http()
+        self.connection = httplib2.Http(proxy_info=self.current_proxy)
         
     def reset_connection(self):
         del self.connection
@@ -93,20 +124,32 @@ class MixcloudAPI():
     def request(self, uri, respect=RESPECT_TIME):
         """Request object at path from the server and return the JSON data of 
         the given resource as a Python object."""
-        if DEBUG:
-            print uri
-        content = None
         sleep(respect) # just out of respect for the API server
         # While loop to force retry if blank returned
+        if DEBUG:
+            print uri
+        # initialise content before loop
+        content = None
+        # keep track of number of proxy switches within the function's scope
+        switching_tries = 0
         while (not content):
             resp, content = self.connection.request(uri)
+            # Handle unsuccessful request:
             if resp.status != 200:
-                if resp.status == 403:
+                # Rate limit is hit when response status is 403
+                if (resp.status == 403 and
+                    (not self.proxies or switching_tries > len(self.proxies))):                    
                     raise MixcloudAPIRateLimitException(
                                                         uri=uri, 
                                                         retry=int(resp["retry-after"]))
-                elif resp.status == 404:
-                    raise MixcloudAPIException(uri, resp.status)
+                elif (resp.status == 403 
+                      and self.proxies and switching_tries <= len(self.proxies)):
+                    self.switch_proxy()
+                    self.reset_connection()
+                    # Reset content so while loop continues
+                    content = None
+                    switching_tries += 1
+                    continue                                    
                 raise MixcloudAPIException(uri, resp.status)
         api_output = json.loads(content)
         return api_output
