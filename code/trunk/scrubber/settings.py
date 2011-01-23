@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-"""Stats scripts settings."""
+"""Crawler settings, using Redis as in-memory cache and MongoDB as storage by 
+default"""
 
+from redis import Redis
 import pymongo
 
 DEBUG = False
@@ -16,7 +18,7 @@ MONGO_COLLECTION_NAME = "user"
 MONGO_USER = None
 MONGO_PASSWORD = None
 
-MONGO_SLAVE_OK = False #whether or not  
+MONGO_SLAVE_OK = True #whether or not  
 MONGO_TIMEOUT = None #network timeout for the connection in seconds
 
 MONGO_CONNECTION = pymongo.Connection(host=MONGO_HOST,
@@ -27,7 +29,6 @@ MONGO_CONNECTION = pymongo.Connection(host=MONGO_HOST,
 MONGO_DB = MONGO_CONNECTION[MONGO_DBNAME]
 MONGO_COLLECTION = MONGO_DB[MONGO_COLLECTION_NAME]
 
-################################################################################
 
 _CONN_TYPES = ["cloudcast", "follower", "following", "favorite", "listen"]
 CONNS = {}
@@ -36,14 +37,3 @@ for each in _CONN_TYPES:
         CONNS[each+"s"] = each+"_count"
     else:
         CONNS[each] = each+"_count"
-        
-
-#### Filenames
-FILENAME_PREFIX = MONGO_DBNAME + "-" + MONGO_COLLECTION_NAME
-GENERAL_STATS =  FILENAME_PREFIX + "-stats.csv"
-AGGR_STATS_PREFIX =  FILENAME_PREFIX + "-stats-aggr-"
-AGGR_STATS = {}
-for each in CONNS:
-    AGGR_STATS[each] = AGGR_STATS_PREFIX + each + ".csv"
-    
-MISMATCH_STATS = FILENAME_PREFIX + "-count-mismatches.csv"

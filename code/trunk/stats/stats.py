@@ -63,6 +63,7 @@ user_coll = MONGO_COLLECTION
 
 
 def save_user_counts():
+    """This saves users and corresponding feature counts to a CSV file."""
     statfile = csv.writer(open(GENERAL_STATS, "w"))
     
     full_ones = user_coll.find(
@@ -103,7 +104,8 @@ def save_aggregate_counts(conn_type):
 
 
 def save_count_mismatch():
-    
+    """Finds and saves users for whom a feature's count does not match the 
+    stored count value."""
     field_names = CONNS.keys() + CONNS.values()
     # Find users with complete documents
     cursor = user_coll.find(
