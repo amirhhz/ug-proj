@@ -166,6 +166,12 @@ if __name__ == "__main__":
                       "The file is expected to contain an item id per line.")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       default=True)
+    parser.add_option("-p", "--use-proxies", action="store_true", 
+                      dest="proxies", default=False, 
+                      help="Use the default proxies provided to overcome rate"
+                      " limit of API - NOTE: you must set up the the "
+                      "connections to the proxies manually using 'ssh -D'")
+
     options, args = parser.parse_args()
 
     inlist = None
@@ -179,7 +185,11 @@ if __name__ == "__main__":
         exit()
 
     # Get the Mixcloud API
-    mcapi = MixcloudAPI(PROXIES)
+    mcapi = None
+    if options.proxies:
+        mcapi = MixcloudAPI(PROXIES)
+    else:
+        mcapi = MixcloudAPI()
 
     try:
         crawler = UserCrawler(inlist, mcapi, crawl_store, crawl_cache)        

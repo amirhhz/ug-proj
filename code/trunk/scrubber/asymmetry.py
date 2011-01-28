@@ -5,9 +5,9 @@ import pymongo
 
 from settings import MONGO_COLLECTION
 
-user_coll = MONGO_COLLECTION
+default_coll = MONGO_COLLECTION
 
-def fix_asymmetry():
+def fix_asymmetry(user_coll):
     cursor = user_coll.find(
                             spec={
                                   "$or": [
@@ -26,10 +26,10 @@ def fix_asymmetry():
                             )
     
     for each in cursor:
-        fix_social_asymmetry(each)
-        fix_content_asymmetry(each)
+        fix_social_asymmetry(user_coll, each)
+        fix_content_asymmetry(user_coll, each)
     
-def save_social_asymmetry(followers_file, following_file):
+def save_social_asymmetry(user_coll, followers_file, following_file):
 
     # Initialise the CSV files to write data to
     fr = open(followers_file, "w")
@@ -59,13 +59,13 @@ def save_social_asymmetry(followers_file, following_file):
     try:
         for user in cursor:        
             if user["follower_count"] > 0:
-                fr_result = find_asym_followers(user)
+                fr_result = find_asym_followers(user_coll, user)
                 if fr_result:
                     fr_csv.writerow([user["_id"], 
                                      len(fr_result), 
                                      fr_result])            
             if user["following_count"] > 0:
-                fg_result = find_asym_following(user)
+                fg_result = find_asym_following(user_coll, user)
                 if fg_result:
                     fg_csv.writerow([user["_id"], 
                                      len(fg_result), 
@@ -74,7 +74,7 @@ def save_social_asymmetry(followers_file, following_file):
         fr.close()
         fg.close()
 
-def save_content_asymmetry(cc_file):
+def save_content_asymmetry(user_coll, cc_file):
     cc = open(cc_file, "w")    
     cc_csv = csv.writer(cc)
     cc_csv.writerow(["user",
@@ -94,7 +94,7 @@ def save_content_asymmetry(cc_file):
                             )
     try:
         for user in cursor:        
-            cc_result = find_missing_cloudcasts(user)
+            cc_result = find_missing_cloudcasts(user_coll, user)
             if cc_result:
                 cc_csv.writerow([user["_id"], 
                                  len(cc_result), 
@@ -103,7 +103,7 @@ def save_content_asymmetry(cc_file):
     finally:
         cc.close()
 
-def fix_social_asymmetry(user):
+def fix_social_asymmetry(user_coll, user):
     # if the argument is not a user's data dict, get it
     if not (isinstance(user, dict) and
             user.has_key("_id") and
@@ -117,7 +117,7 @@ def fix_social_asymmetry(user):
                                   )    
 
     # Fixing the followers list:
-    asym_followers = find_asym_followers(user)
+    asym_followers = find_asym_followers(user_coll, user)
     if asym_followers:
         for dud in asym_followers:
             user["followers"].remove(dud)
@@ -136,7 +136,7 @@ def fix_social_asymmetry(user):
         print "Successfully fixed FOLLOWER asymmetry for", user["_id"]
     
     # Fixing the followees list:
-    asym_followees = find_asym_following(user)
+    asym_followees = find_asym_following(user_coll, user)
     if asym_followees:
         for dud in asym_followees:
             user["following"].remove(dud)
@@ -154,7 +154,7 @@ def fix_social_asymmetry(user):
                          )
         print "Successfully fixed FOLLOWING asymmetry for", user["_id"]
 
-def fix_content_asymmetry(user):
+def fix_content_asymmetry(user_coll, user):
     # if the argument is not a user's data dict, get it
     if not (isinstance(user, dict) and
             user.has_key("_id") and
@@ -167,7 +167,7 @@ def fix_content_asymmetry(user):
                                         "favorites", "listens"]
                                   )
 
-    missing_cc = find_missing_cloudcasts(user)
+    missing_cc = find_missing_cloudcasts(user_coll, user)
     if missing_cc:
         for dud in missing_cc:
             if dud in user["listens"]:
@@ -200,7 +200,7 @@ def fix_content_asymmetry(user):
                          )
         print "Successfully fixed CLOUDCAST asymmetry for", user["_id"]
     
-def find_asym_followers(user):
+def find_asym_followers(user_coll, user):
     """Find  asymmetry in the list of the user's followers: there is asymmetry
     if for the list of followers, the corresponding entry in the followers' 
     following list is missing.""" 
@@ -224,7 +224,7 @@ def find_asym_followers(user):
             result.append(person)
     return result
 
-def find_asym_following(user):
+def find_asym_following(user_coll, user):
     """Find asymmetry in the list of the user's followees: there is asymmetry
     if for the list of followees, the corresponding entry in the followees' 
     follower list is missing.""" 
@@ -247,7 +247,7 @@ def find_asym_following(user):
             result.append(person)
     return result
 
-def find_missing_cloudcasts(user):
+def find_missing_cloudcasts(user_coll, user):
     """Takes a user data dict as input, return list of user-slug pairs of 
     missing cloudcasts."""
 
@@ -273,8 +273,9 @@ def find_missing_cloudcasts(user):
 
 
 if __name__ == "__main__":
-    save_social_asymmetry("followersa-post-fix.csv", "followinga-post-fix.csv")
-    save_content_asymmetry("contenta-post-fix.csv")   
+    save_social_asymmetry(default_coll, 
+                          "followersa-post-fix.csv", "followinga-post-fix.csv")
+    save_content_asymmetry(default_coll, "contenta-post-fix.csv")   
 #    fix_asymmetry()          
         
         
