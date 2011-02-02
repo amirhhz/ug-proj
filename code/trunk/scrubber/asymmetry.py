@@ -273,9 +273,9 @@ def find_missing_cloudcasts(user_coll, user):
 
 
 if __name__ == "__main__":
-    save_social_asymmetry(default_coll, 
-                          "followersa-post-fix.csv", "followinga-post-fix.csv")
-    save_content_asymmetry(default_coll, "contenta-post-fix.csv")   
-#    fix_asymmetry()          
+#    save_social_asymmetry(default_coll, 
+#                          "followersa.csv", "followinga.csv")
+#    save_content_asymmetry(default_coll, "contenta.csv")   
+    fix_asymmetry(default_coll)          
         
         
