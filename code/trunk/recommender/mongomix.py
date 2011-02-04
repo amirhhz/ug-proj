@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """A Python interface for accessing mixcloud data stored in a MongoDB."""
 
+import json
 import pymongo
 import random
 from collections import defaultdict
@@ -8,6 +9,9 @@ from collections import defaultdict
 REGISTRY_SIZE = 25
 MUTILATE_RATIO = 0.05
 SOC_SIM_COLLECTION = "soc_sim_cache"
+HIDDEN_FOLLOWING = "_hidden_following_"
+HIDDEN_FOLLOWERS = "_hidden_followers_"
+
 
 class MongoMixException(Exception):
     def __init__(self, *args):
@@ -40,9 +44,7 @@ class MixcloudDataset(object):
         if len(self.cache) > REGISTRY_SIZE:
             ejected = random.choice(self.cache.keys())
             ejected = self.cache.pop(ejected)
-###            print "INFO:cache:Ejected from cache:", ejected["_id"]
         self.cache[mcuser["_id"]] = mcuser
-###        print "INFO:cache:Added to cache:", mcuser["_id"]
             
     def _fetch_user(self, id):
         """Fetch the user with the given id from the Mongo collection."""
@@ -80,41 +82,43 @@ class MixcloudDataset(object):
             raise MongoMixException("Could not save_user: not a MixcloudUser.")
         self.collection.save(mcuser, safe=True)
     
-    def mutilate(self, ratio=MUTILATE_RATIO):
+    def hide(self, ratio=MUTILATE_RATIO):
         """Remove `ratio` proportion of outgoing links ("following") for all 
-        users. Users with "small enough" outlinks won't be affected.""" 
-        
+        users. Users with "small enough" outlinks won't be affected."""         
         # Any users with count values below this threshold won't be affected by
         # the mutilation, so we can avoid processing them.
-        count_threshold = int(1/ratio) 
-        
+        count_threshold = int(1/ratio)         
         # Find all users eligible for mutilation
-        eligible = self.collection.find(spec={
-                                              "following_count": 
-                                              {"$gt": count_threshold},
-                                              "follower_count": 
-                                              {"$gt": count_threshold}
-                                              },
-                                        fields=["_id"])
-        
+        eligible = self.collection.find(spec={"following_count": 
+                                              {"$gt": count_threshold}},
+                                        fields=["_id"],
+                                        timeout=False)        
+        obituaries = {}
         victim_list = []
         for each in eligible:
             victim_list.append(each["_id"])
-            
+
         while victim_list:
+            print "INFO:hide:todo:", len(victim_list)
             victim = self.get_user(random.choice(victim_list))
-            victim.mutilate_random_follows(ratio)
+            obituaries.update({
+                               victim["_id"]: victim.hide_random_follows(ratio)
+                               })
             victim_list.remove(victim["_id"])
-                    
+            print victim["_id"]         
+        return obituaries        
+
     def repair(self, reference):
         pass
 
-    def collect_stats(self): 
+    def stats(self): 
         pass
     
     def scrub(self):
         pass
-        
+    
+    def sanity(self):
+        pass
 
 class MixcloudUser(dict):
     def __init__(self, data, origin):
@@ -174,20 +178,62 @@ class MixcloudUser(dict):
         old_friend = self.unfollow(user)
         old_friend.unfollow(self["_id"])
 
-    def get_similarity(self, other_user):
-        return self.origin.get_similarity(self, other_user)
+#    def hide_follow(self, user):
+#        target = self.origin.get_user(user)
+#        if target["_id"] in self["following"]:
+#            self["following"].remove(target["_id"])
+#            self["following_count"] -= 1
+#            if HIDDEN_FOLLOWING not in self.keys():
+#                self[HIDDEN_FOLLOWING] = []
+#            self[HIDDEN_FOLLOWING].append(target["_id"])    
+#            self.save()
+#        if self["_id"] in target["followers"]:
+#            target["followers"].remove(self["_id"])
+#            target["follower_count"] -= 1
+#            if HIDDEN_FOLLOWERS not in target.keys():
+#                target[HIDDEN_FOLLOWERS] = []
+#            target[HIDDEN_FOLLOWERS].append(self["_id"])            
+#            target.save()
+#        # Return the user just followed for further manipulation, if any
+#        return target
 
-    def mutilate_random_follows(self, ratio):
+#    def unhide_follow(self, user):
+#        target = self.origin.get_user(user)
+#        if target["_id"] in self[HIDDEN_FOLLOWING]:
+#            self[HIDDEN_FOLLOWING].remove(target["_id"])
+#            self["following"].append(target["_id"])
+#            self["following_count"] += 1
+#            self.save()            
+#        if self["_id"] in target[HIDDEN_FOLLOWERS]:
+#            target[HIDDEN_FOLLOWERS].remove(self["_id"])
+#            target["followers"].append(self["_id"])
+#            target["follower_count"] += 1
+#            target.save()            
+#         Return the user just followed for further manipulation, if any
+#        return target
+#
+#    def unhide_all_follows(self):
+#        for each in self[HIDDEN_FOLLOWING]:
+#            self.unhide_follow(each)
+#        
+#        ## For some reason the above sometimes doesn't do all the items so
+#         recurse until empty - TO FIX
+#        if self[HIDDEN_FOLLOWING]:
+#            self.unhide_all_follows()
+
+    def hide_random_follows(self, ratio):
         if ratio >= 1.0:
             raise MongoMixException("MixcloudUser: mutilation ratio must be "
                                     "less than 1.0.")        
-        outlinks = self.following()
-        pop_size = len(outlinks)
+        pop_size = len(self.following)
         sample_size = int(pop_size*ratio)
         # Take a random sample of the outlinks to be victims
-        victim_links = random.sample(outlinks, sample_size)
+        victim_links = random.sample(self.following, sample_size)
+        if not victim_links:
+            return None
         for each in victim_links:
             self.unfollow(each)
+        return victim_links
 
     def friends(self):
         """Return the set followers who are also following."""
@@ -196,6 +242,9 @@ class MixcloudUser(dict):
     def neighbours(self):
         """Return the set of all social links, followers or following."""
         return set(self["followers"] + self["following"])
+
+    def get_similarity(self, other_user):
+        return self.origin.get_similarity(self, other_user)
     
     def social_hop(self, hops):
         """Return dictionary of users in `hops` hops away in the network. 
@@ -207,7 +256,7 @@ users reachable in as many hops."""
         for h in xrange(0, hops):
             for each in network[h]:
                 current_user = self.origin.get_user(each)
-                network[h+1].update(current_user.neighbours() - network[h])                
+                network[h+1].update(set(current_user.following) - network[h])                
         return network                
 
 
@@ -224,7 +273,7 @@ class Similarity(object):
         else:
             self.ss_cache = self.ds.db.create_collection(
                                                          SOC_SIM_COLLECTION,
-                                                         size=(200*1024*1024),
+                                                         size=(100*1024*1024),
                                                          capped=True)
             print "INFO: User similarity cache created."
         
@@ -257,14 +306,10 @@ class Similarity(object):
         
         cached_value = self.get_cached_soc_sim(user1._id, user2._id)
         if cached_value:
-            print ("INFO:sim:cached similarity between "+user1._id+" and "+ 
-                   user2._id+" == "+str(cached_value)) 
             return cached_value
         else:
             value = self.soc_sim_alg(user1, user2)
             if value:
-                print ("INFO:sim:Calculated similarity between "+user1._id+
-                       " and "+ user2._id+" == "+str(value))                 
                 self.set_cached_soc_sim(user1._id, user2._id, value)
             return value
             
@@ -289,3 +334,10 @@ class Similarity(object):
         sim = float((len(user1_net & user2_net))) / (min(len(user1_net),
                                                          len(user2_net))+1)        
         return sim
+    
+
+class Evaluator(object):
+    def __init__(self, rec, test_dataset, ref_dataset):
+        pass
+    
+    
