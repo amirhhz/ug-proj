@@ -1,0 +1,74 @@
+\documentclass[a4paper,11pt,titlepage]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage{a4wide}
+\usepackage{url}
+
+\title{CST Part II Dissertation Project Progress Report -- Recommender Systems for Social Networks}
+\author{Amir H. Hajizamani}
+\date{February 5, 2011}
+
+\pagestyle{myheadings}
+\markright{Dissertation Project Progress Report - Amir H. Hajizamani (ahh29)}
+
+\begin{document}
+
+\begin{titlepage}
+\rightline{\large\emph{Amir H. Hajizamani}}
+\medskip
+\rightline{\large\emph{St. John's College}}
+\medskip
+\rightline{\large\emph{ahh29}}
+
+\vfill
+
+\centerline{\large CST Part II Dissertation Project Progress Report}
+\vspace{0.4in}
+\centerline{\Large\bf Recommender Systems for Social Networks}
+\vspace{0.3in}
+\centerline{\large{February 5, 2011}}
+
+\vfill
+
+{\bf Project Supervisor:} Cecilia Mascolo
+
+\vspace{0.2in}
+
+{\bf Director of Studies:} Robert Mullins
+
+\vspace{0.2in}
+
+{\bf Overseers:} Ann Copestake and Robert Harle
+
+\vspace{0.2in}
+
+\end{titlepage}
+
+% work completed, and relation to timetable and plan in proposal. 
+At the halfway point to the end of this project, this report is a summary of the work done towards the aims of the project proposal, the challenges faced and how the outcome of these compares against the original plan I set out.
+
+In the context of my proposal, a recommender system can be viewed as predictor of activity in a social graph, that is, given a dataset of users with social links, the output of the system is a prediction of further links that may appear between some users at a later point in time. This could also work on the content interaction graph --recommending items for consumption. With the aim of building a recommender system that does this well, I have identified a number of high-level tasks that need to be accomplished: obtaining the dataset to work with; ensuring the dataset is in a consistent state (``scrubbing''); exploring the data in order to be familiar with its qualities and properties; choose a model to describe the dataset; and finally use the information from the previous stages to make predictions.\footnote{\url{http://www.dataists.com/2010/09/a-taxonomy-of-data-science/}}
+
+Obtaining the dataset is the task that has taken the most amount of time so far by the nature of the fact that I had to fetch it through Mixcloud's API over HTTP\@. I have written a sophisticated wrapper around the API in Python which takes care of a lot of its particular intricacies. Equipped with this, I then wrote a crawler to fetch the data. As the API allows access to users' data only by their unique usernames, I use a depth-first search to gather as much of the connected graph as possible. I store the JSON output of the API in the NoSQL database MongoDB and use the semi-persistence features of Redis (in-memory cache, similar to memcached, with period writes to disk) to ensure continuity over disruptions to the run, such as network outages. I eventually also added the capability to use proxies to access the API when the current one hits the API's rate limit, which had the effect of speeding up the scans by a factor equal to the number of proxies used. By now, I have obtained 3 snapshots of the dataset, with a reassuringly steady growth in their sizes.
+
+Then I had to scrub each snapshot. The main issue was the fact that due to the long period of time between the start and end of each scan, there were inconsistencies in the data about the links between users and content. Fortunately this was fairly straightforward to fix by essentially rolling back inconsistent links until everything matched a state network at some point near the start of the scan. Other minor clean-ups were also performed.
+
+Exploring the dataset is an ongoing process, but in short, I collected basic statistics (including distribution of social activity and content interaction, correlations between different features of a user) on the data which at the very least confirmed that it was structured as expected---everything following a power law---but also informed some decisions later on as to metrics to use to measure similarities, how to optimise performance and so on.
+
+As for modelling and interpretting---in this case making predictions on---the data, that is currently where I am trying to make advances. For the time being I am focusing on the dataset's social structure and treating it as a social network: people with many common social connections are more likely to form their own direct connection than those less. So I have now got a simple recommender system which, given a user to make recommendations for, will calculate social similarity values between that user and people in its near vicinity, for example friends of friends, and outputs the top most similar users as recommended new social connections. The similarity metrics I am tried have been variations on the Jaccard index, which in its pure form is the size of the intersection of two users' social links divided by the union of their social links. To evaluate the performance of this simple recommender, I am initially generating test data from a given snapshot by hiding some of social links in the data, making predictions and looking at the recall and precision rates in the output given against the original data. The results have been mediocre, with recall rates of above 50\% but low precision.
+
+\bigskip
+
+In summary, I believe my project is reasonably on track. With respect to the timetabling in my original proposal, I do not think my recommender system is as sophisticated as I expected it to be at this stage, and there has been less preparation for the dissertation write-up than I planned. On the other hand, I am now in possession of several snapshots of the dataset, which means that the opportunity to do extension work is present. So I would say that so far there has been few difficulties that weren't promptly resolved and I am confident that I am making reasonable progress.
+
+\bigskip
+
+\begin{flushright}
+ Amir H. Hajizamani
+\end{flushright}
+
+
+% on schedule?
+% unexpected difficulties?
+%accomplished?
+
+\end{document}
