@@ -7,7 +7,7 @@ from datetime import datetime
 # Connect to and setup redis
 cache = Redis()
 # Prep redis keys for user queue (to-do list) and user set (done list)
-rd_prefix = "mc:crawl2:"
+rd_prefix = "mc:crawl3:"
 user_q = rd_prefix + "userq"
 user_todo = rd_prefix + "usertodo"
 user_set = rd_prefix + "userset"

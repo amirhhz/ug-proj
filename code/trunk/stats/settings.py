@@ -10,7 +10,7 @@ DEBUG = False
 ################################################################################
 
 MONGO_HOST = "localhost"
-MONGO_PORT = 20001
+MONGO_PORT = 20003
 MONGO_DBNAME = "mixcloud"
 MONGO_COLLECTION_NAME = "user"
 MONGO_USER = None

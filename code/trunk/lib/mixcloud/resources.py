@@ -73,7 +73,7 @@ class BaseResource(Resource):
     applicable."""
     def __init__(self, api, until=None):
         Resource.__init__(self, api)
-        self.resource_params = {"metadata": 1}
+        # self.resource_params = {"metadata": 1}
         self.dyn_resources = {}
         # For some metaconnections, we may want to specify a time with which to
         # limit the dynamic resources returned, notably favorites and cloudcasts

@@ -12,7 +12,7 @@ DEBUG = False
 ################################################################################
 
 MONGO_HOST = "localhost"
-MONGO_PORT = 20002
+MONGO_PORT = 20003
 MONGO_DBNAME = "mixcloud"
 MONGO_COLLECTION_NAME = "user"
 MONGO_USER = None
@@ -46,7 +46,7 @@ REDIS_CONNECTION = Redis(host=REDIS_HOST,
 CACHE = REDIS_CONNECTION
 
 # Prep cache keys for user queue (to-do list) and user set (done list)
-CACHE_KEY_PREFIX = "mc:crawl2:"
+CACHE_KEY_PREFIX = "mc:crawl3:"
 USER_QUEUE = CACHE_KEY_PREFIX + "userq"
 USER_TODO = CACHE_KEY_PREFIX + "usertodo"
 USER_SET = CACHE_KEY_PREFIX + "userset"
