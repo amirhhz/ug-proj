@@ -1,0 +1,140 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PART II PROJECT DISSERTATION - RECOMMENDER SYSTEMS
+%
+% Amir H. Hajizamani, ahh29@cam.ac.uk
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[a4paper,12pt,twoside,notitlepage,draft]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage{a4wide}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{amsmath}
+%\usepackage{proof}
+\usepackage{comment}
+
+% Conditionals (for draft mode)
+\usepackage{ifthen}
+
+% Headers
+\usepackage{fancyhdr}
+
+% TOC customisation
+\usepackage{tocloft}
+
+% Captions
+\usepackage{subfig}
+\usepackage{caption}
+
+% Figures
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning,mindmap,chains,shapes.misc,arrows,fit}
+\usetikzlibrary{decorations.pathmorphing}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{longtable}
+
+% Palatino font - remove to go back to normal CMR
+\usepackage{mathpazo}
+
+% Colour
+\usepackage{color}
+
+% Listings (for code snippets ..._
+\usepackage{listings}
+
+% Algorithms
+\usepackage[boxed]{algorithm}
+
+%\makeindex
+
+\frenchspacing
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The BIG DRAFT SWITCH - Set to true to enable draft mode
+%
+% !!! This will produce extra output that 
+%     is not part of the final dissertation !!!
+
+\newboolean{draft}
+\setboolean{draft}{false}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Definitions
+
+\def\projtitle{Recommender Systems for Social Networks}
+\def\authorname{Amir~H.~Hajizamani}
+\def\authorcollege{St.~John's~College}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Custom Environments
+
+\newcommand{\fixme}[1]{\ifdraft{\color{red} {\bf Fixme: \sc #1}}\fi}
+\newcommand{\todo}[1]{\ifdraft{\textsf{\color{red} TODO: #1}}\fi}
+\newcommand{\remark}[1]{\ifdraft{\textsf{\color{blue} #1}}\fi}
+
+\newcommand{\Matlab}{\textsc{Matlab} }
+
+%% Colours
+\definecolor{darkgreen}{rgb}{0,0.3137,0.196}
+\definecolor{commentgreen}{rgb}{0.247,0.5,0.3725}
+\definecolor{darkpurple}{rgb}{0.5,0,0.33}
+
+%% Some shortcuts for maths stuff
+\providecommand{\Fm}{\mathtt{F}}
+\providecommand{\Pm}{\mathtt{P}}
+\providecommand{\Tp}{\textsuperscript{\textsf{T}}}
+\providecommand{\xsub}[1]{\mathbf{x}_{#1}}
+\providecommand{\X}{\mathbf{X}}
+\providecommand{\Pmc}[2]{\mathbf{p}_{#1}^{#2\textsf{T}}}
+
+%% TikZ command for line annotations
+% Draw line annotation
+% Input:
+%   #1 Line offset (optional)
+%   #2 Line angle
+%   #3 Line length
+%   #4 Line label
+%   #5 Line colour
+% Example:
+%   \lineann[1]{30}{2}{$L_1$}
+\newcommand{\lineann}[5][0.5]{%
+    \begin{scope}[rotate=#2, #5,inner sep=2pt]
+        \draw[dashed, #5!40] (0,0) -- +(0,#1)
+            node [coordinate, near end] (a) {};
+        \draw[dashed, #5!40] (#3,0) -- +(0,#1)
+            node [coordinate, near end] (b) {};
+        \draw[|<->|] (a) -- node[fill=white] {#4} (b);
+    \end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setcounter{page}{1}    % initialise page counter
+\pagenumbering{arabic}  % use arabic numbers (change for index sections etc.?)
+
+\ifdraft
+ \setcounter{secnumdepth}{2}
+\else
+ \setcounter{secnumdepth}{2}
+\fi
+
+\setcounter{tocdepth}{2}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\lstset{    basicstyle=\small\ttfamily, 
+            keywordstyle=\color{purple},
+            commentstyle=\color{commentgreen}\textit,
+            captionpos=b
+        }
