@@ -6,9 +6,18 @@ import pymongo
 import random
 import math
 from collections import defaultdict
+from pymongo.errors import ConnectionFailure, AutoReconnect
+import logging
 
-CACHE_SIZE = 25
+mmlog = logging.getLogger(__name__)
+mmlog.setLevel(logging.DEBUG)
+
+# Number of users to be kept in memory by MixcloudDataset instance
+CACHE_SIZE = 250
+
+# The approx. ratio of links to remove during hiding/mutilation
 MUTILATE_RATIO = 0.05
+
 SOC_SIM_COLLECTION = "soc_sim_cache"
 HIDDEN_FOLLOWING = "_hidden_following_"
 HIDDEN_FOLLOWERS = "_hidden_followers_"
@@ -28,66 +37,115 @@ class MongoMixException(Exception):
 
 
 class MixcloudDataset(object):
-    """At the moment interfacing with one particular collection in a db, assumed
-    to be holding user data in the given collection."""
-    def __init__(self, 
+    """
+    Interface with a Mixcloud dataset (of users) stored in a Mongo collection.
+    """
+    def __init__(self,
                  host="localhost", port=27017, 
                  db="mixcloud", collection="user"):
+        """
+        Connect to the MongoDB instance and reference each element of the db hierarchy.
+        """
         try:
             self.conn = pymongo.Connection(host=host,
                                            port=port)
             self.db = self.conn[db]
             self.collection = self.db[collection]
-        finally:
-            pass
-        # To be one of "reference", "test", "training"
-        # self.type = type
+        except (ConnectionFailure, AutoReconnect), mongo_error:
+            raise MongoMixException("Failed to connect to the dataset", mongo_error)
         # Approxmiation of an LRU cache to keep track of recent MixcloudUser's
         self.cache = {}
         self.similarity = Similarity(self)
         
     def _register_user(self, mcuser):
-        """Register a MixcloudUser object with the Dataset instance."""
+        """
+        Register a MixcloudUser object with the Dataset instance.
+        """
         if not isinstance(mcuser, MixcloudUser):
             raise MongoMixException("User registration: not a MixcloudUser.")
         if len(self.cache) > CACHE_SIZE:
             ejected = random.choice(self.cache.keys())
-            ejected = self.cache.pop(ejected)
+            self.cache.pop(ejected)
         self.cache[mcuser["_id"]] = mcuser
             
     def _fetch_user(self, id):
-        """Fetch the user with the given id from the Mongo collection."""
+        """
+        Fetch the user with the given id from the Mongo collection.
+        """
         data = self.collection.find_one(id)
         if not data:
             raise MongoMixException("_fetch_user: no such user found.", id)
         return data
 
+    def _fetch_all(self):
+        """
+        TODO
+        Load all relevant user data to memory, ignoring CACHE_SIZE.
+        """
+        fields = ["cloudcast_count",
+                  "followers", "follower_count",
+                  "following", "following_count",
+                  "favorites", "favorite_count",
+                  "listens", "listen_count"]
+
+        cursor = self.collection.find(
+            spec={"username": {"$exists": True}},
+            fields=fields,
+            timeout=False
+        )
+        try:
+            for each in cursor:
+                current_user = MixcloudUser(each, self)
+                self.cache[current_user["_id"]] = current_user
+                mmlog.info("_fetch_all: cached user {0} ...".format(current_user["_id"]))
+        finally:
+            pass
+
     def get_user(self, id, fresh=False):
-        """Returns a MixcloudUser instance containing the `id`'s data. Use cache
-        (registry) if a recently accessed id, if not fetch and register it."""
-        if not fresh:
-            if id in self.cache:
-                return self.cache[id]
-        user_data = self._fetch_user(id)
-        if not user_data:
-            return None
-        user = MixcloudUser(user_data, origin=self)
-        self._register_user(user)
+        """
+        Returns a MixcloudUser instance with `id`'s data.
+
+        Use cache (registry) if a recently accessed id, if not fetch and register it.
+        """
+        if not fresh and id in self.cache:
+            return self.cache[id]
+        try:
+            user_data = self._fetch_user(id)
+            user = MixcloudUser(user_data, origin=self)
+            self._register_user(user)
+        except MongoMixException:
+            user = None
         return user
             
     def save_user(self, mcuser):
-        """Write the contents of the MixcloudUser instance to the collection.
-        Assumes a complete user document, so be careful!"""
+        """
+        Write the contents of the MixcloudUser instance to the collection.
+
+        ***Assumes a complete user document, so be careful!***
+        """
         if not isinstance(mcuser, MixcloudUser):
             raise MongoMixException("Could not save_user: not a MixcloudUser.")
         self.collection.save(mcuser, safe=True)    
 
+    def _save_to_file(self, user_list, dest_file):
+        output = {}
+        try:
+            for each in user_list:
+                each_data = self.get_user(each)
+                if each_data:
+                    output[each] = each_data
+        finally:
+            with open(dest_file, "w") as fn:
+                json.dump(output, fn, indent=2)
+
     def _add_follow(self, from_user, to_user):
-        # Assumption: follow lists for both users are clean and consistent,
-        # hence no checking as to whether they already contain the thing before
-        # incrementing
-        
-        # update from_user's following data
+        """
+        Create a follow relationship between two users in the Mongo collection.
+
+        Assumption: follow lists for both users are clean and consistent, hence no
+        checking as to whether they already contain the thing before incrementing.
+        """
+        # update from_user's following data, if the user exists (spec parameter)
         self.collection.update(
             spec={
                 "_id": from_user
@@ -113,7 +171,11 @@ class MixcloudDataset(object):
             )
 
     def _remove_follow(self, from_user, to_user):
-        # update from_user's following data
+        """
+        Destroy a follow relationship between two users in the Mongo collection.
+        """
+        # update from_user's following data, if it exists and actually has the
+        # relationship data
         self.collection.update(
             spec={
                 "_id": from_user,
@@ -126,7 +188,7 @@ class MixcloudDataset(object):
             upsert=False,
             safe=True
             )
-        # update to_user's follower data
+        # update to_user's follower data similarly
         self.collection.update(
             spec={
                 "_id": to_user,
@@ -141,6 +203,11 @@ class MixcloudDataset(object):
             )
 
     def _get_user_follows(self, user):
+        """
+        Return a list of people the `user` follows.
+
+        If the user is cached in memory, will use that data.
+        """
         if user in self.cache:
             return self.cache[user]["following"]
         try:
@@ -152,6 +219,11 @@ class MixcloudDataset(object):
             return None
     
     def _get_user_followers(self, user):
+        """
+        Return a list of people who follow the `user`.
+
+        If the user is cached in memory, will use that data.
+        """
         if user in self.cache:
             return self.cache[user]["followers"]
         try:
@@ -163,6 +235,11 @@ class MixcloudDataset(object):
             return None
 
     def _get_user_friends(self, user):
+        """
+        Return a set of the `user`'s friends (bidirectional follows between then).
+
+        Uses the _get_user_follow* methods so will use cached data if available.
+        """
         friends = set()
         try:
             friends.update(self._get_user_follows(user))
@@ -173,6 +250,11 @@ class MixcloudDataset(object):
             return friends
 
     def _get_social_neighbours(self, user):
+        """
+        Return a set of the `user`'s social neighbours (any follow relationship).
+
+        Uses the _get_user_follow* methods so will use cached data if available.
+        """
         neighbours = set()
         try:
             neighbours.update(self._get_user_follows(user))
@@ -183,12 +265,27 @@ class MixcloudDataset(object):
             return neighbours
 
     def _add_user_favorite(self, user, fave_user, cloudcast_slug):
+        """
+        Add a favourite relationship between a user and cloudcast.
+
+        Updates the user's data and also the cloudcast's data (i.e. favorite_count)
+        to reflect the change.
+        """
         pass
     
     def _remove_user_favorite(self, user, fave_user, cloudcast_slug):
+        """
+        Remove a favourite relationship between a user and cloudcast.
+
+        Updates the user's data and also the cloudcast's data (i.e. favorite_count)
+        to reflect the change.
+        """
         pass
 
     def _get_favorited_users(self, user):
+        """
+        Return a set of users whose cloudcasts the `user` has favorited.
+        """
         favorites = self.collection.find_one(
             user,
             fields=["favorites"]                
@@ -196,6 +293,9 @@ class MixcloudDataset(object):
         return set([f["user"] for f in favorites])
 
     def _get_listened_users(self, user):
+        """
+        Return a set of users whose cloudcasts the `user` has listened to.
+        """
         listens = self.collection.find_one(
             user,
             fields=["listens"]                
@@ -203,16 +303,28 @@ class MixcloudDataset(object):
         return set([l["user"] for l in listens])
     
     def _get_content_neighbours(self, user, include_listens=False):
+        """
+        Return a set of users whose cloudcasts the `user` has favorited and/or listened to.
+
+        Boolean argument `include_listens` will determine if listened to users are
+        included.
+        """
         neighbours = self._get_favorited_users(user)
         if include_listens:
             neighbours.update(self._get_listened_users(user))
         return neighbours
     
     def cache_list(self):
+        """
+        Return list of users cached in memory.
+        """
         return self.cache.keys()
 
     def is_follower(self, followee, follower):
-        query = self.coll.find(
+        """
+        Return a boolean indicating whether `follower` follows `followee`.
+        """
+        query = self.collection.find(
             spec={"_id":followee, "followers": follower},
             fields=[]            
             )
@@ -223,11 +335,18 @@ class MixcloudDataset(object):
             return False
 
     def get_social_similarity(self, item1, item2):
+        """
+        Return the social similarity measure between items (users, cloudcasts).
+        """
+
         return self.similarity.social_similarity(item1, item2)
     
     def hide(self, ratio=MUTILATE_RATIO):
-        """Remove `ratio` proportion of outgoing links ("following") for all 
-        users. Users with "small enough" outlinks won't be affected."""         
+        """
+        Remove `ratio` proportion of outgoing links ("following") for all users.
+
+        Users with "small enough" outlinks won't be affected.
+        """
         # Any users with count values below this threshold won't be affected by
         # the mutilation, so we can avoid processing them.
         count_threshold = int(1/ratio)         
@@ -247,12 +366,13 @@ class MixcloudDataset(object):
                                victim["_id"]: victim.hide_random_follows(ratio)
                                })
             victim_list.remove(victim["_id"])
-            print "INFO:hide:done:", victim["_id"]," :todo:", len(victim_list)         
+            mmlog.info("done hiding {0}. Todo: {1}.".format(victim["_id"], len(victim_list)))
         return obituaries        
     
     def _correct_count(self, username, features):
-        """Correct any incorrect counts for the features given in the document
-for the given user."""
+        """
+        Correct any incorrect counts for `features` of the user.
+        """
         for f in features:
             if f not in CONNS:
                 raise MongoMixException(
@@ -268,7 +388,7 @@ for the given user."""
         
         update_doc = {}
         for feature in features:
-            if (len(user[feature]) != user[CONNS[feature]]):
+            if len(user[feature]) != user[CONNS[feature]]:
                 update_doc[CONNS[feature]] = len(user[feature])
 
         self.collection.update(
@@ -279,14 +399,23 @@ for the given user."""
             )        
 
     def correct_feature_counts(self, username):
+        """
+        Correct all feature counts for the user.
+        """
         self._correct_count(username, CONNS.keys())
-        print "INFO:scrub:corrected feature counts for", username
+        mmlog.info("corrected feature counts for {0}".format(username))
 
 ################################################################################
-## IMPORTANT: ALL ASYMMETRY FUNCTIONS ASSUME THAT COUNTS HAVE BEEN CORRECTED!
+# IMPORTANT:
+# ALL ASYMMETRY FUNCTIONS BELOW ASSUME THAT COUNTS HAVE BEEN CORRECTED! See ^^^
 ################################################################################
         
     def _find_asymmetric_following(self, user):    
+        """
+        Return a list of the user's followings whose follower list does not match.
+
+        (See source code notes above the asymmetry functions for some assumptions.)
+        """
         result = []
         if not isinstance(user, dict):
             user = self.collection.find_one(
@@ -304,6 +433,11 @@ for the given user."""
         return result        
         
     def _find_asymmetric_followers(self, user):    
+        """
+        Return a list of the user's followers whose followings list does not match.
+
+        (See source code notes above the asymmetry functions for some assumptions.)
+        """
         result = []
         if not isinstance(user, dict):
             user = self.collection.find_one(
@@ -321,8 +455,11 @@ for the given user."""
         return result
     
     def _find_missing_cloudcasts(self, user):
-        """Return a list of cloudcasts that the user's data refers to, in either
-the favorites or listens field, which don't exist in the dataset."""
+        """
+        Return a list of referenced cloudcasts which don't exist.
+
+        Cloudcasts can be referred to in either the favorites or listens field. 
+        """
         result = []
         if not isinstance(user, dict):        
             user = self.collection.find_one(
@@ -346,6 +483,9 @@ the favorites or listens field, which don't exist in the dataset."""
         return result
 
     def fix_social_asymmetry(self, user):
+        """
+        TODO
+        """
         if not isinstance(user, dict):
             user = self.collection.find_one(
                 spec={"_id": user}, 
@@ -385,9 +525,12 @@ the favorites or listens field, which don't exist in the dataset."""
                 safe=True
                 )
             
-        print "INFO:scrub:Fixed social asymmetry for", user["_id"]
+        mmlog.info("scrub:Fixed social asymmetry for {0}.".format(user["_id"]))
             
     def fix_content_asymmetry(self, user):
+        """
+        TODO
+        """
         if not isinstance(user, dict):
             user = self.collection.find_one(
                 spec={"_id": user}, 
@@ -417,7 +560,7 @@ the favorites or listens field, which don't exist in the dataset."""
                     },
                 safe=True)
 
-        print "INFO:scrub:Fixed content asymmetry for", user["_id"]
+        mmlog.info("scrub:Fixed content asymmetry for {0}.".format(user["_id"]))
             
     def fix_asymmetry(self, user):
         self.fix_social_asymmetry(user)
@@ -425,9 +568,11 @@ the favorites or listens field, which don't exist in the dataset."""
 
         
     def scrub(self, feature_counts=False, asymmetry=False):
-        """Scrub the dataset as indicated by the given arguments.
+        """
+        Scrub the dataset as indicated by the given arguments.
         
-IMPORTANT: the asymmetry fixes assume that feature counts are correct."""
+        IMPORTANT: the asymmetry fixes assume that feature counts are correct.
+        """
         if feature_counts:
             cursor = self.collection.find(
                 spec={"username": {"$exists": True} },
@@ -458,20 +603,29 @@ IMPORTANT: the asymmetry fixes assume that feature counts are correct."""
                 )
             for each in cursor:
                 self.fix_asymmetry(each)
-        
+
     def sanity(self):
+        """
+        TODO
+        """
         pass
 
     def repair(self, reference):
+        """
+        TODO
+        """
         pass
 
     def census(self, aggregate=False, format="csv"):
+        """
+        TODO
+        """
         ###TODO: aggregate
         import csv
         
         file_name = "mmstat-{0}-{1}.csv".format(self.conn.host, self.conn.port)
 
-        print "INFO:stats:writing stats to {0}...".format(file_name)
+        mmlog.info("stats:writing stats to {0}...".format(file_name))
         
         with open(file_name,"w") as statfile:
             csv_out = csv.writer(statfile)
@@ -490,7 +644,13 @@ IMPORTANT: the asymmetry fixes assume that feature counts are correct."""
 
 
 class MixcloudUser(dict):
+    """
+    TODO
+    """
     def __init__(self, data, origin):
+        """
+        TODO
+        """
         dict.__init__(self)
         self.update(data)
         if not isinstance(origin, MixcloudDataset):
@@ -499,19 +659,27 @@ class MixcloudUser(dict):
         self.origin = origin
 
     def __getattribute__(self, name):
-        """Try to get attribute as normal, then try dictionary lookup."""
+        """
+        Try to get attribute as normal, then try dictionary lookup.
+        """
         try:
             return dict.__getattribute__(self, name)
-        except AttributeError:
+        except AttributeError, ae:
             try:
                 return self[name]
             except KeyError:
-                raise AttributeError()
+                raise ae
 
     def refresh(self):
+        """
+        TODO
+        """
         self.update(self.origin._fetch_user(self["_id"]))
         
     def save(self):
+        """
+        TODO
+        """
         self.origin.save_user(self)
 
 ################################################################################
@@ -519,6 +687,9 @@ class MixcloudUser(dict):
 ################################################################################            
    
     def follow(self, target):
+        """
+        TODO
+        """
         if target not in self["following"]:
             self.origin._add_follow(self["_id"], target)
             self["following"].append(target)
@@ -526,6 +697,9 @@ class MixcloudUser(dict):
             return True
 
     def unfollow(self, target):
+        """
+        TODO
+        """
         if target in self["following"]:
             self.origin._remove_follow(self["_id"], target)
             self["following"].remove(target)
@@ -533,7 +707,9 @@ class MixcloudUser(dict):
             return True
     
     def friend(self, user):
-        """Create social links in both directions."""
+        """
+        Create social links in both directions.
+        """
         if user not in self["following"]: 
             self.follow(user)
         if user not in self["followers"]: 
@@ -542,7 +718,9 @@ class MixcloudUser(dict):
             self["follower_count"] += 1
             
     def unfriend(self, user):
-        """Remove social links in both directions."""
+        """
+        Remove social links in both directions.
+        """
         if user in self["following"]: 
             self.unfollow(user)
         if user in self["followers"]: 
@@ -551,6 +729,9 @@ class MixcloudUser(dict):
             self["follower_count"] -= 1
 
     def hide_random_follows(self, ratio):
+        """
+        TODO
+        """
         if ratio >= 1.0:
             raise MongoMixException("MixcloudUser: mutilation ratio must be "
                                     "less than 1.0.")        
@@ -565,16 +746,20 @@ class MixcloudUser(dict):
         return victim_links
 
     def friends(self):
-        """Return the set followers who are also following."""
-        return (set(self["followers"]) & set(self["following"]))
+        """
+        Return the set followers who are also following back.
+        """
+        return set(self["followers"]) & set(self["following"])
 
     def social_neighbours(self):
-        """Return the set of all social links, followers or following."""
+        """
+        Return the set of all social links, followers or following.
+        """
         return set(self["followers"] + self["following"])
 
     #### DO NOT USE THIS METHOD, NEEDS FIXING/MIGHT BE USELESS ANYWAY    
     def social_hop_out(self, hops):
-        """Return dictionary of users in `hops` hops away in the network. 
+        """REDUNDANT!!Return dictionary of users in `hops` hops away in the network.
 
 The dictionary keys are integers from 0 upwards, and the values are sets of 
 users reachable in as many hops on "following" (outwards) edges."""
@@ -592,9 +777,14 @@ users reachable in as many hops on "following" (outwards) edges."""
         return network      
 
     def fofs(self, strictness=1):
-        """Return the users friends of friends, only on outward links (default).
+        """
+        Return the users friends of friends, only on outward links (default).
 
-Strictness: 0 - friends only, 1 - following, 2 - all neighbours, 3 - followers.
+        Set strictness value:
+        0 - friends only,
+        1 - following,
+        2 - all neighbours,
+        3 - followers (note: smaller or equal to "all neighbours").
         """ 
         friends = None
         if strictness == 0:
@@ -617,31 +807,49 @@ Strictness: 0 - friends only, 1 - following, 2 - all neighbours, 3 - followers.
                     fof_list.update(self.origin._get_social_neighbours(each))
                 elif strictness == 3:
                     fof_list.update(self.origin._get_user_followers(each))            
-        return (fof_list - friends)
+        return fof_list - friends
 
 ################################################################################
 ## METHODS TO DO WITH CONTENT
 ################################################################################            
 
     def favorite(self, user, cloudcast_slug):
+        """
+        TODO
+        """
         pass
     
     def unfavorite(self, user, cloudcast_slug):
+        """
+        TODO
+        """
         pass
 
     def favorited_users(self):
+        """
+        TODO
+        """
         return set([f["user"] for f in self["favorites"]])
 
     def listened_users(self):
+        """
+        TODO
+        """
         return set([f["user"] for f in self["listens"]])
 
     def content_neighbours(self, include_listens=False):
+        """
+        TODO
+        """
         neighbours = self.favorited_users()
         if include_listens:
             neighbours.update(self.listened_users())
         return neighbours
         
     def content_fofs(self, include_listens=False):
+        """
+        TODO
+        """
         neighbours = self.content_neighbours(include_listens)
         
         content_fofs = set()
@@ -649,51 +857,52 @@ Strictness: 0 - friends only, 1 - following, 2 - all neighbours, 3 - followers.
             content_fofs.update(
                 self.origin._get_content_neighbours(
                     each, include_listens=False))
-        return (content_fofs - neighbours)
+        return content_fofs - neighbours
 
     def get_social_similarity(self, other_user):
-        return self.origin.get_social_similarity(self["_id"], other_user)          
+        """
+        TODO
+        """
+        return self.origin.get_social_similarity(self["_id"], other_user)
 
     def correct_counts(self):
-        self.origin.correct_feature_counts(self["_id"])        
+        """
+        TODO
+        """
+        self.origin.correct_feature_counts(self["_id"])
         self.refresh()
 
     def fix_asymmetry(self):
+        """
+        TODO
+        """
         self.origin.fix_asymmetry(self)
         self.refresh()
         
 
 class Similarity(object):
+    """
+    TODO
+    """
     def __init__(self, dataset):
+        """
+        TODO
+        """
         if isinstance(dataset, MixcloudDataset):
             self.ds = dataset        
         self.soc_sim_alg = self.jaccard_custom
-        self._configure_cache()
 
-    def _configure_cache(self):
-        pass
-
-    def _clear_cache(self):
-        pass
-    
-    def get_cached_soc_sim(self, userid1, userid2):
-        found = None
-        for id in [(userid1+"-"+userid2), (userid2+"-"+userid1)]:            
-            found = self.ss_cache.find_one(id)
-            if found: 
-                return found["value"]
-        # After checking both possible locations for the cached value ...            
-        if not found:
-            return None
-    
-    def set_cached_soc_sim(self, userid1, userid2, value):
-        self.ss_cache.save({"_id": (userid1+"-"+userid2), "value": value})
 
     def _change_soc_sim_alg(self, alg_func):
+        """
+        TODO
+        """
         self.soc_sim_alg = alg_func
-        self._clear_cache()
-        
+
     def social_similarity(self, user1, user2):
+        """
+        TODO
+        """
         return self.soc_sim_alg(user1, user2)
 
 ################################################################################
@@ -701,6 +910,9 @@ class Similarity(object):
 ################################################################################
             
     def intersection_size(self, user1, user2):
+        """
+        TODO
+        """
         if (not user1) or (not user2):
             return 0.0
         f1 = set(self.ds._get_user_follows(user1))
@@ -709,9 +921,12 @@ class Similarity(object):
         f2 = set(self.ds._get_user_follows(user2))
         if not f2:
             return 0.0
-        return (len(f1 & f2))
+        return len(f1 & f2)
 
     def jaccard(self, user1, user2):
+        """
+        TODO
+        """
         if (not user1) or (not user2):
             return 0.0
         f1 = set(self.ds._get_user_follows(user1))
@@ -729,6 +944,9 @@ class Similarity(object):
         return sim
         
     def jaccard_custom(self, user1, user2):
+        """
+        TODO
+        """
         if (not user1) or (not user2):
             return 0.0
         f1 = set(self.ds._get_user_follows(user1))
@@ -746,6 +964,9 @@ class Similarity(object):
         return sim
 
     def adamic_adar(self, user1, user2):
+        """
+        TODO
+        """
         if (not user1) or (not user2):
             return 0.0
         f1 = set(self.ds._get_user_follows(user1))
@@ -769,6 +990,9 @@ class Similarity(object):
         return ad_ad_value
     
     def pref_attachment(self, user1, user2):
+        """
+        TODO
+        """
         f1_count = self.ds.collection.find_one(
             spec_or_id=user1,
             fields=["following_count"])["following_count"]
@@ -776,4 +1000,29 @@ class Similarity(object):
             spec_or_id=user2,
             fields=["following_count"])["following_count"]
         return f1_count * f2_count
+
+
+class MixcloudRecsEvaluator(object):
+    """
+    Use for statistical analysis of recommendations for a MixcloudDataset.
+    """
+    def __init__(self, original_dataset, reference_dataset):
+        if (not isinstance(original_dataset, MixcloudDataset)
+            or not isinstance(reference_dataset, MixcloudDataset)):
+            raise MongoMixException("Can evaluate using MixcloudDataset instances.")
+
+    def eval_follow_recs(self, recs):
+        """
+        TODO
+        """
+        pass
+
+
+class MixcloudDatasetComparator(object):
+    """
+    Use for comparing two datasets differences.
+    """
+    def __init__(self, ds1, ds2):
+        if not isinstance(ds1, MixcloudDataset) or not isinstance(ds2, MixcloudDataset):
+            raise MongoMixException("Can only compare MixcloudDataset instances.")
 
