@@ -5,8 +5,12 @@ import json
 from mongomix import MixcloudDataset, MixcloudUser
 from subprocess import Popen
 
+
 test_data = """
 """
+with open("team.json", "r") as team_data:
+    test_data = json.load(team_data)
+
 
 def setup_module():
     pass

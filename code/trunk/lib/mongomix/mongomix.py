@@ -11,6 +11,7 @@ import logging
 
 mmlog = logging.getLogger(__name__)
 mmlog.setLevel(logging.DEBUG)
+mmlog.addHandler(logging.StreamHandler())
 
 # Number of users to be kept in memory by MixcloudDataset instance
 CACHE_SIZE = 250
@@ -18,13 +19,8 @@ CACHE_SIZE = 250
 # The approx. ratio of links to remove during hiding/mutilation
 MUTILATE_RATIO = 0.05
 
-SOC_SIM_COLLECTION = "soc_sim_cache"
-HIDDEN_FOLLOWING = "_hidden_following_"
-HIDDEN_FOLLOWERS = "_hidden_followers_"
-
-_CONN_TYPES = ["cloudcast", "follower", "following", "favorite", "listen"]
 CONNS = {}
-for each in _CONN_TYPES:
+for each in ["cloudcast", "follower", "following", "favorite", "listen"]:
     if each != "following":
         CONNS[each+"s"] = each+"_count"
     else:
@@ -59,7 +55,7 @@ class MixcloudDataset(object):
         
     def _register_user(self, mcuser):
         """
-        Register a MixcloudUser object with the Dataset instance.
+        Register a MixcloudUser object with the Dataset instance's cache.
         """
         if not isinstance(mcuser, MixcloudUser):
             raise MongoMixException("User registration: not a MixcloudUser.")
@@ -82,6 +78,7 @@ class MixcloudDataset(object):
         TODO
         Load all relevant user data to memory, ignoring CACHE_SIZE.
         """
+        # These are the relevant fields we want fast access to
         fields = ["cloudcast_count",
                   "followers", "follower_count",
                   "following", "following_count",
@@ -100,6 +97,12 @@ class MixcloudDataset(object):
                 mmlog.info("_fetch_all: cached user {0} ...".format(current_user["_id"]))
         finally:
             pass
+
+    def cache_list(self):
+        """
+        Return list of users cached in memory.
+        """
+        return self.cache.keys()
 
     def get_user(self, id, fresh=False):
         """
@@ -128,6 +131,9 @@ class MixcloudDataset(object):
         self.collection.save(mcuser, safe=True)    
 
     def _save_to_file(self, user_list, dest_file):
+        """
+        Write a JSON dump to dest_file which consists of the data of users in the list.
+        """
         output = {}
         try:
             for each in user_list:
@@ -313,12 +319,6 @@ class MixcloudDataset(object):
         if include_listens:
             neighbours.update(self._get_listened_users(user))
         return neighbours
-    
-    def cache_list(self):
-        """
-        Return list of users cached in memory.
-        """
-        return self.cache.keys()
 
     def is_follower(self, followee, follower):
         """
@@ -366,7 +366,9 @@ class MixcloudDataset(object):
                                victim["_id"]: victim.hide_random_follows(ratio)
                                })
             victim_list.remove(victim["_id"])
-            mmlog.info("done hiding {0}. Todo: {1}.".format(victim["_id"], len(victim_list)))
+            mmlog.info("done hiding {0}. Todo: {1}.".format(
+                victim["_id"],
+                len(victim_list)))
         return obituaries        
     
     def _correct_count(self, username, features):
@@ -375,9 +377,8 @@ class MixcloudDataset(object):
         """
         for f in features:
             if f not in CONNS:
-                raise MongoMixException(
-                    "Feature/connection given is not valid.", f
-                    )
+                raise MongoMixException("Feature/connection given is not valid.", f)
+
         fields = list(features)
         fields += [CONNS[feature] for feature in fields]
 
@@ -618,9 +619,8 @@ class MixcloudDataset(object):
 
     def census(self, aggregate=False, format="csv"):
         """
-        TODO
+        TODO - aggregate
         """
-        ###TODO: aggregate
         import csv
         
         file_name = "mmstat-{0}-{1}.csv".format(self.conn.host, self.conn.port)
@@ -642,7 +642,36 @@ class MixcloudDataset(object):
                     row.append(each[CONNS[field]])
                 csv_out.writerow(row)          
 
+    def perf_profile(self):
+        """
+        Profile and return a report of running some sample code on the dataset.
 
+        A pstat.Stats instance is return
+        """
+        import pstats, cProfile
+
+        cursor = self.collection.find(
+            fields=["_id"],
+            limit=50, 
+            sort=[("follower_count", pymongo.DESCENDING)])
+
+        sample_users = [item["_id"] for item in cursor]
+
+        def sample_run():
+            sample = []
+            for each in sample_users:
+                sample.append(self.get_user(each))
+
+            for pivot in sample:
+                for other in sample:
+                    if other != pivot:
+                        sim = pivot.get_social_similarity(other["_id"])
+                #mmlog.info("profile:Done calcs for {0} ...".format(pivot["_id"]))
+
+        cProfile.runctx("sample_run()", globals(), locals(), "perf_profile.stat")
+        return pstats.Stats("perf_profile.stat")
+
+    
 class MixcloudUser(dict):
     """
     TODO
@@ -672,7 +701,7 @@ class MixcloudUser(dict):
 
     def refresh(self):
         """
-        TODO
+        Re-fetch this user's data from the origin dataset.
         """
         self.update(self.origin._fetch_user(self["_id"]))
         
@@ -688,7 +717,9 @@ class MixcloudUser(dict):
    
     def follow(self, target):
         """
-        TODO
+        Make a follow connection from this user to the target.
+
+        Updates the origin dataset, too, so everything will be consistent.
         """
         if target not in self["following"]:
             self.origin._add_follow(self["_id"], target)
@@ -698,7 +729,9 @@ class MixcloudUser(dict):
 
     def unfollow(self, target):
         """
-        TODO
+        Remove a follow connection from this user to the target.
+
+        Updates the origin dataset, too, so everything will be consistent.
         """
         if target in self["following"]:
             self.origin._remove_follow(self["_id"], target)
@@ -709,6 +742,8 @@ class MixcloudUser(dict):
     def friend(self, user):
         """
         Create social links in both directions.
+
+        Updates the origin dataset, too, so everything will be consistent.
         """
         if user not in self["following"]: 
             self.follow(user)
@@ -720,6 +755,8 @@ class MixcloudUser(dict):
     def unfriend(self, user):
         """
         Remove social links in both directions.
+
+        Updates the origin dataset, too, so everything will be consistent.
         """
         if user in self["following"]: 
             self.unfollow(user)
@@ -759,10 +796,12 @@ class MixcloudUser(dict):
 
     #### DO NOT USE THIS METHOD, NEEDS FIXING/MIGHT BE USELESS ANYWAY    
     def social_hop_out(self, hops):
-        """REDUNDANT!!Return dictionary of users in `hops` hops away in the network.
+        """
+        REDUNDANT!!Return dictionary of users in `hops` hops away in the network.
 
-The dictionary keys are integers from 0 upwards, and the values are sets of 
-users reachable in as many hops on "following" (outwards) edges."""
+        The dictionary keys are integers from 0 upwards, and the values are sets of
+        users reachable in as many hops on "following" (outwards) edges.
+        """
         network = defaultdict(set)
         network[0] = set((self._id,))   
         for h in xrange(0, hops):
@@ -889,9 +928,12 @@ class Similarity(object):
         TODO
         """
         if isinstance(dataset, MixcloudDataset):
-            self.ds = dataset        
-        self.soc_sim_alg = self.jaccard_custom
+            self.ds = dataset
+        else:
+            raise MongoMixException(
+                "Must pass a MixcloudDataset into a Similarity instant.")
 
+        self.soc_sim_alg = self.jaccard_custom
 
     def _change_soc_sim_alg(self, alg_func):
         """
@@ -1026,3 +1068,37 @@ class MixcloudDatasetComparator(object):
         if not isinstance(ds1, MixcloudDataset) or not isinstance(ds2, MixcloudDataset):
             raise MongoMixException("Can only compare MixcloudDataset instances.")
 
+    def diff(self, op_file=None):
+        pass
+
+
+class MixcloudUserDiff(dict):
+    """
+    Use for comparing the difference of the a user's data across two datasets.
+    """
+    def __init__(self, current_snap, past_snap):
+        if (not isinstance(current_snap, MixcloudUser)
+            or not isinstance(past_snap, MixcloudUser)):
+            raise MongoMixException("Can only diff MixcloudUser instances.")
+        self.current = current_snap
+        self.past = past_snap
+        dict.__init__(self)
+
+    def _get_feature_diff(self, feature):
+        if feature not in CONNS:
+            raise MongoMixException("could not get a diff for unknown feature.")
+        self[feature] = {"added": [], "removed": []}
+        # Treat followers and following differently to fave and listens ...?
+        
+    def get_feature_diffs(self):
+        """
+        Return a diff of changes to significant features of the user.
+
+        These are: followers, following, favorites, and listens. Other user data is
+        immaterial.
+
+        The returned object is a dictionary with top-level keys being the feature names.
+        Within each key there are "added" and "removed" keys and their values are lists
+        of added or removed elements for that feature across the snapshot.
+        """
+        pass
