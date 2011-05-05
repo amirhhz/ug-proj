@@ -7,8 +7,13 @@
 
 \documentclass[a4paper,12pt,twoside,notitlepage,draft]{report}
 
+\author{Amir H. Hajizamani}
+\title{CST Part II Individual Project Dissertation - Recommender Systems for 
+Social Networks}
+
 \usepackage[T1]{fontenc}
 \usepackage{a4wide}
+\usepackage{parskip}
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{amsmath}
@@ -71,7 +76,8 @@
 % Definitions
 
 \def\projtitle{Recommender Systems for Social Networks}
-\def\authorname{Amir~H.~Hajizamani}
+\def\authorname{Amir~H.~Hajizamani} 
+\def\authoremail{\url{ahh29@cam.ac.uk}}
 \def\authorcollege{St.~John's~College}
 
 
@@ -138,3 +144,164 @@
             commentstyle=\color{commentgreen}\textit,
             captionpos=b
         }
+
+
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title Page
+
+
+\begin{flushright}
+\authorname \\
+% \authoremail 
+\end{flushright}
+\bigskip % have this so that vfill works to centre the title vertically
+
+\vfill
+
+\begin{center}
+ \medskip
+ {\Large\bf \projtitle}
+
+ \vspace*{1cm}
+
+ {\large Computer Science Tripos Part II}
+
+ \bigskip
+
+ {\large \authorcollege}
+
+ \bigskip
+
+ {\large \today}
+\end{center}
+
+\vfill
+\vfill
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proforma
+\chapter*{Proforma}
+{
+\begin{tabular}{ll}
+Name:               & \bf \authorname \\
+College:            & \bf \authorcollege \\
+Project Title:      & \bf \projtitle \\
+Examination:        & \bf Computer Science Tripos, Part II, June 2011 \\
+Word Count:         & \bf MANY words \\
+Project Originator: & \bf Amir~H.~Hajizamani \\
+Supervisor:         & \bf Cecilia Mascolo \\
+\end{tabular}
+}
+
+\section*{Original Aims of the Project}
+
+Lorem ipsum
+
+\section*{Work Completed}
+
+Lorem ipsum
+
+\section*{Special Difficulties}
+
+None.
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Declaration of Originality
+\section*{Declaration}
+
+I, \authorname~of \authorcollege, being a candidate for Part II of the Computer
+Science Tripos, hereby declare that this dissertation and the work described in
+it are my own work, unaided except as may be specified below, and that
+the dissertation does not contain material that has already been used to any
+substantial extent for a comparable purpose.
+
+\bigskip
+\leftline{Signed}
+
+\medskip
+\leftline{Date}
+
+\vfill
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Table of Contents
+\tableofcontents
+\clearpage
+
+%\clearpage
+%\listoffigures
+
+%\clearpage
+%\listoftables
+
+%\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+\chapter{Introduction}
+
+\section{Motivation}
+
+\section{Challenges}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preparation 
+\chapter{Preparation}
+
+\section{Current Solutions}
+
+\section{Literature Review}
+
+\section{Deciding on an Approach}
+
+\section{Tools}
+
+ \subsection{Programming Languages}
+
+ \subsection{Databases}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Implementation
+\chapter{Implementation}
+
+\section{The Dataset}
+
+\section{The Recommender}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Evaluation
+\chapter{Evaluation}
+
+\section{Measures}
+
+\section{Static}
+
+\section{Temporal}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conclusions
+\chapter{Conclusions}
+\section{Further work}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendices
+
+\appendix
+\chapter*{Appendix}
+\addcontentsline{toc}{chapter}{Appendix}
+
+\section{First Appendix}
+
+\end{document}
