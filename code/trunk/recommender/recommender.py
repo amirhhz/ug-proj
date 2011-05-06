@@ -9,8 +9,10 @@ class RecommenderException(Exception):
     def __init__(self, *args):
         Exception.__init__(self, args)
 
+
 class Recommender(object):
-    """"""
+    """
+    """
     def __init__(self, dataset):
         if not isinstance(dataset, MixcloudDataset):
             raise RecommenderException("Rec init: Invalid Mixcloud Dataset.") 
@@ -33,6 +35,9 @@ class Recommender(object):
 
     
 class Evaluator(object):
+    """
+    TODO
+    """
     def __init__(self, test_dataset, ref_dataset):
         if not isinstance(test_dataset, MixcloudDataset):
             raise RecommenderException("Evaluator init: Invalid Dataset.") 
