@@ -176,6 +176,11 @@ class MixcloudDataset(object):
             safe=True
             )
 
+        if from_user in self.cache:
+            self.cache[from_user].refresh()
+        if to_user in self.cache:
+            self.cache[to_user].refresh()
+
     def _remove_follow(self, from_user, to_user):
         """
         Destroy a follow relationship between two users in the Mongo collection.
@@ -207,6 +212,11 @@ class MixcloudDataset(object):
             upsert=False,
             safe=True
             )
+
+        if from_user in self.cache:
+            self.cache[from_user].refresh()
+        if to_user in self.cache:
+            self.cache[to_user].refresh()
 
     def _get_user_follows(self, user):
         """
@@ -270,6 +280,53 @@ class MixcloudDataset(object):
         finally:
             return neighbours
 
+    def _get_favorited_users(self, user):
+        """
+        Return a set of users whose cloudcasts the `user` has favorited.
+        """
+        if user in self.cache:
+            return set(f["user"] for f in self.cache[user]["favorites"])
+
+        favorites = self.collection.find_one(
+            user,
+            fields=["favorites"]
+            )["favorites"]
+        return set([f["user"] for f in favorites])
+
+    def _get_listened_users(self, user):
+        """
+        Return a set of users whose cloudcasts the `user` has listened to.
+        """
+        if user in self.cache:
+            return set(f["user"] for f in self.cache[user]["listens"])
+
+        listens = self.collection.find_one(
+            user,
+            fields=["listens"]
+            )["listens"]
+        return set([l["user"] for l in listens])
+
+    def _get_content_neighbours(self, user, include_listens=False):
+        """
+        Return a set of users whose cloudcasts the `user` has favorited and/or listened to.
+
+        Boolean argument `include_listens` will determine if listened to users are
+        included.
+        """
+        neighbours = self._get_favorited_users(user)
+        if include_listens:
+            neighbours.update(self._get_listened_users(user))
+        return neighbours
+
+    def _get_feature_count(self, user, feature):
+        field = CONNS[feature]
+        if user in self.cache:
+            return self.cache[user][field]
+
+        return self.collection.find_one(
+            spec_or_id=user,
+            fields=[field])[field]
+
     def _add_user_favorite(self, user, fave_user, cloudcast_slug):
         """
         Add a favourite relationship between a user and cloudcast.
@@ -287,38 +344,6 @@ class MixcloudDataset(object):
         to reflect the change.
         """
         pass
-
-    def _get_favorited_users(self, user):
-        """
-        Return a set of users whose cloudcasts the `user` has favorited.
-        """
-        favorites = self.collection.find_one(
-            user,
-            fields=["favorites"]                
-            )["favorites"]
-        return set([f["user"] for f in favorites])
-
-    def _get_listened_users(self, user):
-        """
-        Return a set of users whose cloudcasts the `user` has listened to.
-        """
-        listens = self.collection.find_one(
-            user,
-            fields=["listens"]                
-            )["listens"]
-        return set([l["user"] for l in listens])
-    
-    def _get_content_neighbours(self, user, include_listens=False):
-        """
-        Return a set of users whose cloudcasts the `user` has favorited and/or listened to.
-
-        Boolean argument `include_listens` will determine if listened to users are
-        included.
-        """
-        neighbours = self._get_favorited_users(user)
-        if include_listens:
-            neighbours.update(self._get_listened_users(user))
-        return neighbours
 
     def is_follower(self, followee, follower):
         """
@@ -932,14 +957,27 @@ class Similarity(object):
         else:
             raise MongoMixException(
                 "Must pass a MixcloudDataset into a Similarity instant.")
+        self.alg_dir = {
+            "intersection": self.intersection_size,
+            "jaccard": self.jaccard,
+            "jaccard_custom": self.jaccard_custom,
+            "adamic-adar": self.adamic_adar,
+            "pref-attach": self.pref_attachment
+        }
 
         self.soc_sim_alg = self.jaccard_custom
 
-    def _change_soc_sim_alg(self, alg_func):
+    def _change_soc_sim_alg(self, alg_name):
         """
-        TODO
+        Change the social similarity algorithm.
+
+        Choose from:
+        "intersection", "jaccard", "jaccard_custom","adamic-adar", "pref-attach"
         """
-        self.soc_sim_alg = alg_func
+        if alg_name in self.alg_dir:
+            self.soc_sim_alg = alg_func
+        else:
+            raise MongoMixException("Similarity: invalid algorithm name.", alg_name)
 
     def social_similarity(self, user1, user2):
         """
@@ -947,9 +985,9 @@ class Similarity(object):
         """
         return self.soc_sim_alg(user1, user2)
 
-################################################################################
+###############################################################################
 ## SIMILARITY MEASURES
-################################################################################
+###############################################################################
             
     def intersection_size(self, user1, user2):
         """
@@ -978,7 +1016,7 @@ class Similarity(object):
         if not f2:
             return 0.0
         # Distance is equal to the number of common friends (intersection) 
-        # divided by the maximum number of common friends (min of sizes)
+        # divided by the union of friends
         sim = (
             len(f1 & f2) / 
             float(len(f1 | f2))
@@ -1021,9 +1059,7 @@ class Similarity(object):
         common = f1 & f2
         ad_ad_value = 0.0
         for each in common:
-            fo_count = self.ds.collection.find_one(
-                spec_or_id=each,
-                fields=["following_count"])["following_count"]
+            fo_count = self.ds._get_feature_count(each, "following")
             if fo_count > 1:
                 try:
                     ad_ad_value += 1.0/(math.log(fo_count))
@@ -1035,46 +1071,55 @@ class Similarity(object):
         """
         TODO
         """
-        f1_count = self.ds.collection.find_one(
-            spec_or_id=user1,
-            fields=["following_count"])["following_count"]
-        f2_count = self.ds.collection.find_one(
-            spec_or_id=user2,
-            fields=["following_count"])["following_count"]
+        f1_count = self.ds._get_feature_count(user1, "following")
+        f2_count = self.ds._get_feature_count(user2, "following")
         return f1_count * f2_count
-
-
-class MixcloudRecsEvaluator(object):
-    """
-    Use for statistical analysis of recommendations for a MixcloudDataset.
-    """
-    def __init__(self, original_dataset, reference_dataset):
-        if (not isinstance(original_dataset, MixcloudDataset)
-            or not isinstance(reference_dataset, MixcloudDataset)):
-            raise MongoMixException("Can evaluate using MixcloudDataset instances.")
-
-    def eval_follow_recs(self, recs):
-        """
-        TODO
-        """
-        pass
 
 
 class MixcloudDatasetComparator(object):
     """
     Use for comparing two datasets differences.
     """
-    def __init__(self, ds1, ds2):
-        if not isinstance(ds1, MixcloudDataset) or not isinstance(ds2, MixcloudDataset):
+    def __init__(self, current_snap, past_snap):
+        if (not isinstance(current_snap, MixcloudDataset)
+            or not isinstance(past_snap, MixcloudDataset)):
             raise MongoMixException("Can only compare MixcloudDataset instances.")
+        self.current = current_snap
+        self.past = past_snap
 
-    def diff(self, op_file=None):
-        pass
+    def get_diff(self, op_file=None):
+        """
+        Return a dictionary with users as keys and diffs as values.
 
+        Only users that span both dataset snapshots are included.
+        """
+        self.current._fetch_all()
+        mmlog.info("Comparator: fetched all for current dataset snapshot.")
+        self.past._fetch_all()
+        mmlog.info("Comparator: fetched all for past dataset snapshot.")
 
-class MixcloudUserDiff(dict):
+        shared_users = set(self.current.cache.keys()) & set(self.past.cache.keys())
+
+        self.diff_result = {}
+
+        for each in shared_users:
+            curr_diff = MixcloudUserDiff(self.current.cache[each], self.past.cache[each])
+            self.diff_results[each] = curr_diff.get_feature_diffs()
+            mmlog.info("Comparator: diff'ed shared user {0}".format(each))
+
+        if op_file:
+            import json
+            with open(op_file,"w") as diff_file:
+                json.dump(self.diff_result, diff_file, indent=2)
+
+        return self.diff_result
+
+        
+class MixcloudUserDiff(object):
     """
     Use for comparing the difference of the a user's data across two datasets.
+
+    This class extends the dict class.
     """
     def __init__(self, current_snap, past_snap):
         if (not isinstance(current_snap, MixcloudUser)
@@ -1082,23 +1127,39 @@ class MixcloudUserDiff(dict):
             raise MongoMixException("Can only diff MixcloudUser instances.")
         self.current = current_snap
         self.past = past_snap
-        dict.__init__(self)
+        self.diff = {}
 
-    def _get_feature_diff(self, feature):
+    def _fill_feature_diff(self, feature):
         if feature not in CONNS:
-            raise MongoMixException("could not get a diff for unknown feature.")
-        self[feature] = {"added": [], "removed": []}
-        # Treat followers and following differently to fave and listens ...?
-        
-    def get_feature_diffs(self):
+            raise MongoMixException("could not get a diff for unknown feature.", feature)
+        self.diff[feature] = {"added": [], "removed": []}
+
+        if self.current[feature] == self.past[feature]:
+            return
+        self.diff[feature]["added"] = [
+            item for item in self.current[feature] if item not in self.past[feature]]
+        self.diff[feature]["removed"] = [
+            item for item in self.past[feature] if item not in self.current[feature]]
+
+    def get_feature_diffs(self, feature_list=None):
         """
         Return a diff of changes to significant features of the user.
 
         These are: followers, following, favorites, and listens. Other user data is
-        immaterial.
+        immaterial. feature_list can be used to specify a subset of these.
 
         The returned object is a dictionary with top-level keys being the feature names.
         Within each key there are "added" and "removed" keys and their values are lists
         of added or removed elements for that feature across the snapshot.
         """
-        pass
+        if feature_list is None:
+            feature_list = ["followers", "following", "favorites", "listens"]
+        for feature in feature_list:
+            self._fill_feature_diff(feature)
+        return self.diff
+
+    def print_stats(self):
+        for feature in self.diff:
+            print "::", feature
+            print "added", len(self.diff[each]["added"])
+            print "removed", len(self.diff[each]["removed"])
