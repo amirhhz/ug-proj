@@ -249,13 +249,196 @@ substantial extent for a comparable purpose.
 % Introduction
 \chapter{Introduction}
 
+% - Mention fulfillment early
+% - Principal Motivation
+% - Other CS work
+
+In this project I will explore and implement techniques for making 
+recommendations to members of online social networks. The motivation behind 
+this idea is that the value of data about an individual person or some digital 
+content (text, audio, video, etc.) is increased by knowledge of its relation to 
+other such entities. This is true for the user, whose experience is enriched, 
+and the service provider, whose cultural and financial success will depend on 
+behaviour-based analysis and the growth and interactions of its users.
+
 \section{Motivation}
 
-\section{Challenges}
+With the growing number of available social network services that individuals 
+can choose to invest time and effort into, it is imperative that there is an 
+incentive to do so. We take this investment by the user to consist of: 
+providing personal information, creating and sharing content, making social 
+connections with other users, and interacting with other users and content in 
+the myriad of ways that are possible and observed in real world implementation 
+such as Facebook, YouTube, LinkedIn, Twitter and Foursquare, to name a few. One 
+way of providing this incentive is by making it easier for users to make 
+\emph{discoveries} -- to find other individuals of interest (real-world 
+friends, people with similar characteristics) or content. That is, make 
+recommendations to users and keep them interested in exploring what the social 
+network has to offer. Recommender systems aim to solve the problem of 
+\emph{information overload} in areas where the users of a service struggle to 
+make good choices on what content to consume or what social activities to take 
+part in, simply because the options are overwhelming.
+
+If we treat the users of a social network as a community, it is clear that the 
+community will need the investment mentioned above from its users so that it 
+reaches critical mass -- the point at which it is valuable for others to join 
+or contribute to the network because the majority of their friends have, or so 
+much of the content they consume is accessible via the service. This will 
+continually increase the richness and quality of the service the community 
+receives (assuming the service provider keeps up and adapts to changes!) and 
+increase the lifetime and utility of the service for its users, too. Of course, 
+here we are concerned with social networks that aim to reach the mainstream and 
+are not inherently limited to a select number of users. For instance, a social 
+network for the community of world experts on network congestion analysis is 
+bound to hit its maximum membership limit very quickly and not be much more 
+useful to its users than email or more traditional communication methods.
+
+From a commercial perspective, which is arguably the more important one for the 
+survival of a service, having users remain active on the network and 
+incentivise others to do so, too, is paramount. It is well-understood that 
+social network service providers are not expected to be profitable\footnote{The 
+risks underlying the business of social networks -- 
+\url{http://www.makeuseof.com/tag/how-do-social-networks-make-money-case-wondering/}} 
+until they reach an ``audience of scale'' to enable the adoption of a sensible 
+monetisation model. For instance, Facebook only became profitable in 2009\footnote{
+\url{http://www.pcpro.co.uk/news/351646/facebook-eyes-profit-as-it-hits-300-million-members}} 
+after reaching 300 million users. This means that the investors who enable such 
+ventures at the start need to be convinced that the service has the potential 
+to reach popularity and therefore provide a return on investment. Of the many 
+strategies that can be used to maintain the growth of a social network, 
+implementing a good recommender system is standard practice. It should be noted 
+that recommendations are difficult, if not infeasible, to make at the very 
+beginning of a network's lifetime due to the \emph{cold start} problem, that 
+is, when there is insufficient data to base recommendations on. Therefore, the 
+focus of this project is on stages of a network's lifetime after this issue has 
+been overcome.
+
+Below I describe my chosen dataset and the reasons for this choice over other 
+available datasets.
+
+\subsection*{The \emph{Mixcloud} Dataset}
+
+I will work on data from Mixcloud.com whom I worked for over the summer of 
+2009. They are a steadily-growing and successful content distribution website, 
+aiming to be the ``YouTube of Radio''. They provide a platform for 
+user-generated audio content, ranging from podcasts to DJ mixes, to be easily 
+accessed by anyone. They have been operating for over a year and have in the 
+order of 100,000 users and a similar number of so-called ``Cloudcasts'' 
+(uploaded audio content). They provide their users with social networking 
+features such as Twitter-style following, Facebook-style activity updates, 
+favouriting of Cloudcasts and commenting, and a record of listening history. 
+The user-uploaded Cloudcasts are also heavily annotated with tags, categories, 
+text descriptions, tracklists where appropriate, metadata about recent 
+listeners and more. 
+
+This wealth of metadata about Mixcloud's content and users is available via 
+their public API\footnote{\url{http://api.mixcloud.com}} and I shall be 
+gathering the data I need from it. The fact that the API is public means that I 
+am able to use the data in my project and the results will be publishable in 
+the project dissertation. I have had further confirmation from the staff at 
+Mixcloud Ltd. about this.
+
+At the time of writing, Mixcloud implement some simple mechanisms for 
+\emph{item recommendations} and \emph{personalised recommendations} -- 
+recommending Cloudcasts similar to the current one, and recommending Cloudcasts 
+matching the user's personal listening history. I would like my recommender 
+system to primarily aim to provide the functionality of 
+\emph{social recommendations} -- suggesting other users whom the current user 
+may be interested in following or listening to based on their shared social 
+connections, activity similarities and other metrics. The problem of 
+recommending content to users based on the listening pattern of their own 
+social connections (as opposed to that of their entire community) can also be 
+called \emph{social recommendation} and would likely use similar underlying 
+data and metrics. I should point out that the social aspect of the Mixcloud 
+community is more similar to that of Twitter, where people follow users who 
+produce good content as well as real life friends, than that of Facebook where 
+social links are more often initiated physically.
+
+Given the motivations for building recommender systems described in the last 
+subsection, I understand that Mixcloud have prioritised the implementation of 
+Cloudcast recommendations on their website because their main focus has been on 
+building up the library of content on their network and promoting themselves as 
+content distributors. However, the social networking layer on top of their 
+distribution layer is naturally their next focus, whilst they improve the 
+recommendation algorithms they currently use, too. They can leverage the high 
+standard of their content metadata and existing social connections to make 
+social recommendations. So essentially, the quality and completeness of the 
+dataset, despite its organic nature, and the utility of a social recommender 
+system for Mixcloud and their community are good reasons for picking it. I also 
+compare the Mixcloud dataset with other ones traditionally used to explore 
+recommender system techniques below.
+
+A working system would likely draw on concepts from all three types of 
+recommendation mentioned so far to account for inherent peculiarities in the 
+dataset. For example, two users may have common taste in music but not be 
+well-connected in the social graph or vice-versa. An effective system would 
+take advantage of the rich social graph and indirect relationships between 
+users and content to overcome these issues and enable further linkage in the 
+dataset, hopefully with the effect of aiding the community and commercial 
+objectives outlined earlier.
+
+\subsubsection*{Comparison with other Available Datasets}
+
+The most widely used datasets in discussions on recommender systems are the 
+MovieLens, EachMovie, Book-Crossing and Jester Jokes datasets\footnote{
+All of these datasets are available via\url{http://www.grouplens.org/node/12}} 
+which contains items and user ratings on their respective titular item types. 
+Though the quality of these datasets is proven, they have limitations for my 
+intended project goals. In particular, there is no social connectivity data 
+between users in these datasets and the links between entities are limited to 
+ratings by users on some items. With the Mixcloud dataset I am able to explore 
+the social graph of the users. Furthermore, the Mixcloud dataset provides much 
+richer metadata about its entities, as described above, than any of the 
+traditional datasets which give only enough data to build item-item and 
+item-user matrices corresponding to the ratings. The Mixcloud dataset has scope 
+for more interesting analysis and recommender system implementations.
+
+The Mixcloud dataset also has the potential for analysis in the temporal 
+dimension, which is the extension idea for this project and is described later.
+
+\subsection*{The Temporal Dimension}
+
+\section{Wider Context}
+
+The Web is rife with successful recommender systems, with companies such as 
+\textit{Amazon, Netflix\footnote{In 2006 Netflix challenged programmers to 
+improve their movie recommendation engine by 10\%.}} and \textit{Pandora} 
+(radio service backed by \textit{The Music Genome Project}\footnote{The MGP 
+uses the``genealogy'' of music to link songs and artists -- 
+\url{http://www.pandora.com}}) investing a lot of time and money in improving 
+their algorithms and data quality to better recommend items of interest to 
+their users. On the other hand, more directly community-driven websites such as 
+\textit{del.icio.us} and \textit{flickr} have harnessed the collective 
+intelligence of their users and their tagging of their content with keywords. 
+Collaborative tagging leads to an organic categorisation and annotation of data 
+which has been termed \textit{folksonomy}\footnote{A portmanteau of 
+\textit{folk} and \textit{taxonomy} -- 
+\url{http://www.vanderwal.net/folksonomy.html}}. In a sufficiently large and 
+active community, the folksonomy that can be extracted becomes a good source of 
+input for the algorithms in a recommender system. 
+
+With the accelerating growth of social networks such as Twitter and Facebook, 
+the value of social recommendations which aim to increase the connections 
+between individuals is more important that it used to be: the items of 
+interests are now other users not products on sale (though from an advertising 
+revenue perspective the difference is blurred). Recommender systems are nearing 
+maturity and will soon be, if they are not already, commodity technologies as 
+the ``social connections layer'' of virtual communities is completed\footnote{
+The ``game layer'' is the next stage in building virtual communities, the 
+founder of SCVNGR argues -- \url{
+http://www.ted.com/talks/seth_priebatsch_the_game_layer_on_top_of_the_world.html}}. 
+This means that an analysis of such systems is essential to the understanding 
+of social networking and the Web as it experiences a paradigm shift from a 
+\emph{search} platform (e.g. Google) to a \emph{discovery} platform.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preparation 
 \chapter{Preparation}
+% - before coding
+% - Refinement of the proposal
+% - Professionalilty
+% - SoftEng practices
 
 \section{Current Solutions}
 
@@ -272,6 +455,9 @@ substantial extent for a comparable purpose.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Implementation
 \chapter{Implementation}
+% - Code produced
+% - Acknowledge use of existing tools
+% - Major milestone
 
 \section{The Dataset}
 
@@ -280,6 +466,12 @@ substantial extent for a comparable purpose.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Evaluation
 \chapter{Evaluation}
+% - Signs of success
+% -  thorough and systematic testing
+% - figures
+% - Goals achieved
+% - Short-comings
+% - Amibtious logical conclusion
 
 \section{Measures}
 
@@ -290,6 +482,9 @@ substantial extent for a comparable purpose.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Conclusions
 \chapter{Conclusions}
+% - Reminder of aims and achievements
+% - Discussion in hindsight
+
 \section{Further work}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
