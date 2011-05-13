@@ -5,16 +5,17 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass[a4paper,12pt,twoside,notitlepage,draft]{report}
+\documentclass[a4paper,12pt,twoside,notitlepage]{report}
 
 \author{Amir H. Hajizamani}
 \title{CST Part II Individual Project Dissertation - Recommender Systems for 
 Social Networks}
 
+\usepackage{verbatim}
 \usepackage[T1]{fontenc}
 \usepackage{a4wide}
 \usepackage{parskip}
-\usepackage{hyperref}
+%\usepackage{hyperref}
 \usepackage{url}
 \usepackage{amsmath}
 %\usepackage{proof}
@@ -68,7 +69,7 @@ Social Networks}
 %     is not part of the final dissertation !!!
 
 \newboolean{draft}
-\setboolean{draft}{false}
+\setboolean{draft}{true}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -79,6 +80,9 @@ Social Networks}
 \def\authorname{Amir~H.~Hajizamani} 
 \def\authoremail{\url{ahh29@cam.ac.uk}}
 \def\authorcollege{St.~John's~College}
+\def\projsupervisor{Cecilia~Mascolo}
+
+\def\mixurl{\emph{mixcloud.com}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -87,8 +91,6 @@ Social Networks}
 \newcommand{\fixme}[1]{\ifdraft{\color{red} {\bf Fixme: \sc #1}}\fi}
 \newcommand{\todo}[1]{\ifdraft{\textsf{\color{red} TODO: #1}}\fi}
 \newcommand{\remark}[1]{\ifdraft{\textsf{\color{blue} #1}}\fi}
-
-\newcommand{\Matlab}{\textsc{Matlab} }
 
 %% Colours
 \definecolor{darkgreen}{rgb}{0,0.3137,0.196}
@@ -126,36 +128,27 @@ Social Networks}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \setcounter{page}{1}    % initialise page counter
-\pagenumbering{arabic}  % use arabic numbers (change for index sections etc.?)
 
-\ifdraft
- \setcounter{secnumdepth}{2}
-\else
- \setcounter{secnumdepth}{2}
-\fi
+% pre-TOC page formatting
+\pagenumbering{roman}
+\pagestyle{plain}
 
-\setcounter{tocdepth}{2}
+%\setcounter{secnumdepth}{2}
+%\setcounter{tocdepth}{2}
 
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt}
-
-\lstset{    basicstyle=\small\ttfamily, 
-            keywordstyle=\color{purple},
-            commentstyle=\color{commentgreen}\textit,
-            captionpos=b
-        }
-
-
+\linespread{1.2}
 
 \begin{document}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Title Page
 
+\thispagestyle{empty} 
 
 \begin{flushright}
-\authorname \\
-% \authoremail 
+\authorname
 \end{flushright}
 \bigskip % have this so that vfill works to centre the title vertically
 
@@ -179,38 +172,55 @@ Social Networks}
 \end{center}
 
 \vfill
-\vfill
 
 \clearpage
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Proforma
-\chapter*{Proforma}
-{
+\section*{Proforma}
+
 \begin{tabular}{ll}
 Name:               & \bf \authorname \\
 College:            & \bf \authorcollege \\
 Project Title:      & \bf \projtitle \\
 Examination:        & \bf Computer Science Tripos, Part II, June 2011 \\
-Word Count:         & \bf MANY words \\
-Project Originator: & \bf Amir~H.~Hajizamani \\
-Supervisor:         & \bf Cecilia Mascolo \\
+Word Count:         & \bf \todo{MANY words} \\
+Project Originator: & \bf \authorname \\
+Supervisor:         & \bf \projsupervisor \\
 \end{tabular}
-}
 
-\section*{Original Aims of the Project}
+%\footnotetext[1]{This word count was computed
+%by {\tt detex diss.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w}}
 
-Lorem ipsum
+\subsection*{Original Aims of the Project}
 
-\section*{Work Completed}
+To build a system that would recommend new social links to users of a social
+network in order to increase the connectivity of its social graph. These
+recommendations would be based on the current state of the graph and their
+quality would depend on whether the recommended links actually occur in a
+future state of the graph. From the outset, the dataset to be used for the
+project was that of the online audio-sharing community \mixurl.
 
-Lorem ipsum
+\subsection*{Work Completed}
 
-\section*{Special Difficulties}
+The initial part of the work was obtaining the Mixcloud dataset. I modelled the
+dataset's entities and wrote an abstraction layer for the Mixcloud API. I
+then used this in a crawler program that downloaded and stored as much of the
+data on \mixurl\ as possible.
+
+The subsequent recommender system I wrote achieves the above aims by modelling
+the recommendation process as an edge prediction problem: given a social graph,
+it tries to predict what edges will form in the future between unconnected nodes
+and assigns a confidence value to the predictions. In essence, this is done by
+calculating similarity values between nodes and choosing the most similar
+unconnected nodes as predictions.
+
+\subsection*{Special Difficulties}
 
 None.
 
-\clearpage
+\newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Declaration of Originality
@@ -223,12 +233,29 @@ the dissertation does not contain material that has already been used to any
 substantial extent for a comparable purpose.
 
 \bigskip
+\bigskip
+\bigskip
 \leftline{Signed}
 
 \medskip
 \leftline{Date}
 
-\vfill
+
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Acknowledgements
+
+\section*{Acknowledgements}
+
+If this dissertation turns out to be anything worth the paper it's printed on I
+have the following people to thank:
+
+\begin{itemize}
+ \item {\bf Liam~McNamara}
+ \item {\bf Helen~Ennos}, for all her feedback, encouragement and support.
+Without you, my time at Cambridge would have been a very different experience. 
+\end{itemize}
 
 \clearpage
 
@@ -245,6 +272,16 @@ substantial extent for a comparable purpose.
 
 %\clearpage
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Switch to arabic page numbers after TOC
+\setcounter{page}{1}
+\setcounter{chapter}{0}
+\pagenumbering{arabic}
+\pagestyle{headings}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Introduction
 \chapter{Introduction}
@@ -253,35 +290,35 @@ substantial extent for a comparable purpose.
 % - Principal Motivation
 % - Other CS work
 
-In this project I will explore and implement techniques for making 
-recommendations to members of online social networks. The motivation behind 
-this idea is that the value of data about an individual person or some digital 
-content (text, audio, video, etc.) is increased by knowledge of its relation to 
-other such entities. This is true for the user, whose experience is enriched, 
-and the service provider, whose cultural and financial success will depend on 
-behaviour-based analysis and the growth and interactions of its users.
+In this chapter I will explain my motivations for investigating recommender
+systems in general and the specific focus points of my project as
+presented in this dissertation using data from \mixurl.
 
 \section{Motivation}
 
-With the growing number of available social network services that individuals 
-can choose to invest time and effort into, it is imperative that there is an 
-incentive to do so. We take this investment by the user to consist of: 
-providing personal information, creating and sharing content, making social 
-connections with other users, and interacting with other users and content in 
-the myriad of ways that are possible and observed in real world implementation 
-such as Facebook, YouTube, LinkedIn, Twitter and Foursquare, to name a few. One 
-way of providing this incentive is by making it easier for users to make 
-\emph{discoveries} -- to find other individuals of interest (real-world 
-friends, people with similar characteristics) or content. That is, make 
-recommendations to users and keep them interested in exploring what the social 
-network has to offer. Recommender systems aim to solve the problem of 
-\emph{information overload} in areas where the users of a service struggle to 
-make good choices on what content to consume or what social activities to take 
-part in, simply because the options are overwhelming.
+The basic concept that underpins recommender systems is that the value of data
+about an individual person or piece of content is increased by knowledge of its
+relation to other such entities. This is true for the user of a system, whose
+experience is enriched with this metadata and is thus incentivised to keep
+using, it and the service provider, whose cultural impact and financial success
+will depend the growth and interactions of its users with the service.
 
-If we treat the users of a social network as a community, it is clear that the 
-community will need the investment mentioned above from its users so that it 
-reaches critical mass -- the point at which it is valuable for others to join 
+There are now a growing number of available social networking services that
+individuals can choose to invest time and effort into. We take this investment
+by the user to consist of: providing personal information, creating and sharing
+content, making social connections with other users, and interacting with other
+users and content. One way of providing an incentive to do this is by making it
+easier for users to make \emph{discoveries} -- to find other individuals or
+items of interest (real-world friends, content that compliments the user's
+favourites). That is, make recommendations to users and keep them interested in
+exploring what the social network has to offer. Recommender systems aim
+to solve the problem of \emph{information overload} in areas where the users of
+a service struggle to make good choices on what content to consume or what
+social activities to take part in, simply because the options are overwhelming.
+
+If we treat the users of a social network as a community, it is clear that such
+a community will need the investment mentioned above from its users to reach
+some critical mass -- the point at which it is valuable for others to join 
 or contribute to the network because the majority of their friends have, or so 
 much of the content they consume is accessible via the service. This will 
 continually increase the richness and quality of the service the community 
@@ -293,10 +330,10 @@ network for the community of world experts on network congestion analysis is
 bound to hit its maximum membership limit very quickly and not be much more 
 useful to its users than email or more traditional communication methods.
 
-From a commercial perspective, which is arguably the more important one for the 
-survival of a service, having users remain active on the network and 
-incentivise others to do so, too, is paramount. It is well-understood that 
-social network service providers are not expected to be profitable\footnote{The 
+From a commercial perspective of a service provider, having users remain active
+on the network and incentivise others to do so, too, is paramount. It is
+well-understood that social network service providers are not expected to be
+profitable\footnote{The 
 risks underlying the business of social networks -- 
 \url{http://www.makeuseof.com/tag/how-do-social-networks-make-money-case-wondering/}} 
 until they reach an ``audience of scale'' to enable the adoption of a sensible 
@@ -310,109 +347,24 @@ implementing a good recommender system is standard practice. It should be noted
 that recommendations are difficult, if not infeasible, to make at the very 
 beginning of a network's lifetime due to the \emph{cold start} problem, that 
 is, when there is insufficient data to base recommendations on. Therefore, the 
-focus of this project is on stages of a network's lifetime after this issue has 
-been overcome.
+focus of this project is on stages of a network's lifetime when it is
+nearinafterg maturity and this issue hasbeen overcome.
 
-Below I describe my chosen dataset and the reasons for this choice over other 
-available datasets.
-
-\subsection*{The \emph{Mixcloud} Dataset}
-
-I will work on data from Mixcloud.com whom I worked for over the summer of 
-2009. They are a steadily-growing and successful content distribution website, 
-aiming to be the ``YouTube of Radio''. They provide a platform for 
-user-generated audio content, ranging from podcasts to DJ mixes, to be easily 
-accessed by anyone. They have been operating for over a year and have in the 
-order of 100,000 users and a similar number of so-called ``Cloudcasts'' 
-(uploaded audio content). They provide their users with social networking 
-features such as Twitter-style following, Facebook-style activity updates, 
-favouriting of Cloudcasts and commenting, and a record of listening history. 
-The user-uploaded Cloudcasts are also heavily annotated with tags, categories, 
-text descriptions, tracklists where appropriate, metadata about recent 
-listeners and more. 
-
-This wealth of metadata about Mixcloud's content and users is available via 
-their public API\footnote{\url{http://api.mixcloud.com}} and I shall be 
-gathering the data I need from it. The fact that the API is public means that I 
-am able to use the data in my project and the results will be publishable in 
-the project dissertation. I have had further confirmation from the staff at 
-Mixcloud Ltd. about this.
-
-At the time of writing, Mixcloud implement some simple mechanisms for 
-\emph{item recommendations} and \emph{personalised recommendations} -- 
-recommending Cloudcasts similar to the current one, and recommending Cloudcasts 
-matching the user's personal listening history. I would like my recommender 
-system to primarily aim to provide the functionality of 
-\emph{social recommendations} -- suggesting other users whom the current user 
-may be interested in following or listening to based on their shared social 
-connections, activity similarities and other metrics. The problem of 
-recommending content to users based on the listening pattern of their own 
-social connections (as opposed to that of their entire community) can also be 
-called \emph{social recommendation} and would likely use similar underlying 
-data and metrics. I should point out that the social aspect of the Mixcloud 
-community is more similar to that of Twitter, where people follow users who 
-produce good content as well as real life friends, than that of Facebook where 
-social links are more often initiated physically.
-
-Given the motivations for building recommender systems described in the last 
-subsection, I understand that Mixcloud have prioritised the implementation of 
-Cloudcast recommendations on their website because their main focus has been on 
-building up the library of content on their network and promoting themselves as 
-content distributors. However, the social networking layer on top of their 
-distribution layer is naturally their next focus, whilst they improve the 
-recommendation algorithms they currently use, too. They can leverage the high 
-standard of their content metadata and existing social connections to make 
-social recommendations. So essentially, the quality and completeness of the 
-dataset, despite its organic nature, and the utility of a social recommender 
-system for Mixcloud and their community are good reasons for picking it. I also 
-compare the Mixcloud dataset with other ones traditionally used to explore 
-recommender system techniques below.
-
-A working system would likely draw on concepts from all three types of 
-recommendation mentioned so far to account for inherent peculiarities in the 
-dataset. For example, two users may have common taste in music but not be 
-well-connected in the social graph or vice-versa. An effective system would 
-take advantage of the rich social graph and indirect relationships between 
-users and content to overcome these issues and enable further linkage in the 
-dataset, hopefully with the effect of aiding the community and commercial 
-objectives outlined earlier.
-
-\subsubsection*{Comparison with other Available Datasets}
-
-The most widely used datasets in discussions on recommender systems are the 
-MovieLens, EachMovie, Book-Crossing and Jester Jokes datasets\footnote{
-All of these datasets are available via\url{http://www.grouplens.org/node/12}} 
-which contains items and user ratings on their respective titular item types. 
-Though the quality of these datasets is proven, they have limitations for my 
-intended project goals. In particular, there is no social connectivity data 
-between users in these datasets and the links between entities are limited to 
-ratings by users on some items. With the Mixcloud dataset I am able to explore 
-the social graph of the users. Furthermore, the Mixcloud dataset provides much 
-richer metadata about its entities, as described above, than any of the 
-traditional datasets which give only enough data to build item-item and 
-item-user matrices corresponding to the ratings. The Mixcloud dataset has scope 
-for more interesting analysis and recommender system implementations.
-
-The Mixcloud dataset also has the potential for analysis in the temporal 
-dimension, which is the extension idea for this project and is described later.
-
-\subsection*{The Temporal Dimension}
-
-\section{Wider Context}
+\subsection{Wider Context}
 
 The Web is rife with successful recommender systems, with companies such as 
-\textit{Amazon, Netflix\footnote{In 2006 Netflix challenged programmers to 
-improve their movie recommendation engine by 10\%.}} and \textit{Pandora} 
-(radio service backed by \textit{The Music Genome Project}\footnote{The MGP 
+\emph{Amazon, Netflix\footnote{In 2006 Netflix challenged programmers to 
+improve their movie recommendation engine by 10\%.}} and \emph{Pandora} 
+(radio service backed by \emph{The Music Genome Project}\footnote{The MGP 
 uses the``genealogy'' of music to link songs and artists -- 
 \url{http://www.pandora.com}}) investing a lot of time and money in improving 
 their algorithms and data quality to better recommend items of interest to 
 their users. On the other hand, more directly community-driven websites such as 
-\textit{del.icio.us} and \textit{flickr} have harnessed the collective 
+\emph{del.icio.us} and \emph{flickr} have harnessed the collective 
 intelligence of their users and their tagging of their content with keywords. 
 Collaborative tagging leads to an organic categorisation and annotation of data 
-which has been termed \textit{folksonomy}\footnote{A portmanteau of 
-\textit{folk} and \textit{taxonomy} -- 
+which has been termed \emph{folksonomy}\footnote{A portmanteau of 
+\emph{folk} and \emph{taxonomy} -- 
 \url{http://www.vanderwal.net/folksonomy.html}}. In a sufficiently large and 
 active community, the folksonomy that can be extracted becomes a good source of 
 input for the algorithms in a recommender system. 
@@ -426,54 +378,215 @@ maturity and will soon be, if they are not already, commodity technologies as
 the ``social connections layer'' of virtual communities is completed\footnote{
 The ``game layer'' is the next stage in building virtual communities, the 
 founder of SCVNGR argues -- \url{
-http://www.ted.com/talks/seth_priebatsch_the_game_layer_on_top_of_the_world.html}}. 
+http://www.ted.com/talks/seth_priebatsch_the_game_layer_on_top_of_the_world.html
+}}. 
 This means that an analysis of such systems is essential to the understanding 
 of social networking and the Web as it experiences a paradigm shift from a 
 \emph{search} platform (e.g. Google) to a \emph{discovery} platform.
 
 
+\section{The \mixurl\ Dataset}
+
+I will work on data from the \mixurl. They are a successful audio content
+distribution website, aiming to be the ``YouTube of Radio''. They provide a
+platform for user-generated audio content, ranging from podcasts to DJ mixes, to
+be easily accessed by anyone. They have been operating for nearly two years and
+have in the order of 100,000 users and a similar number of
+so-called ``Cloudcasts'' (uploaded audio content). They provide
+their niche community of users with social networking features such as
+Twitter-style following, Facebook-style activity updates, favouriting of
+Cloudcasts and commenting, and a record of listening history. 
+The user-uploaded Cloudcasts are also heavily annotated with tags, categories, 
+text descriptions and other metadata.This wealth of metadata about Mixcloud's
+users and content is available via their
+public API\footnote{\url{http://api.mixcloud.com}} and I gathered the data I
+need from it.
+
+\subsection{Focus on Social Recommendations}
+At the time of writing, \mixurl\ implements some simple mechanisms for 
+\emph{item recommendations} and \emph{personalised recommendations}: 
+respectively, recommending Cloudcasts similar to the one being viewed/played,
+and recommending Cloudcasts related to the user's personal listening history. 
+
+My approach is to provide \emph{social recommendations}: suggesting \emph{other
+users} whom the current user may be interested in following or listening to. My
+reason for this is that the social aspect of the \mixurl\ community is more
+similar to that of Twitter, where people connect with users who produce good
+content as well as real life friends, than that of Facebook where social links
+are more often initiated physically, or in the traditional sense of ``social''.
+
+Given the motivations for building recommender systems described above, I
+understand that the Mixcloud team have prioritised the implementation of 
+the recommendations centred around content because their main
+focus has been on building up the library of content on their network and
+promoting themselves as content distributors. However, the social networking
+layer on top of their distribution layer is the next natural focus. 
+
+\subsection{The Temporal Dimension}
+
+As I am collecting my own data firsthand, I can look at the performance of my
+recommendations over temporal snapshots of the dataset.
+\todo{more detail here?}
+\subsection{Comparison with other Available Datasets}
+
+The most widely used datasets in discussions on recommender systems are the 
+MovieLens, EachMovie, Book-Crossing and Jester Jokes datasets\footnote{
+All of these datasets are available via\url{http://www.grouplens.org/node/12}} 
+which contain items and user ratings on their respective titular item types. 
+Though the quality of these datasets is proven, they have limitations for my 
+intended project goals. In particular, there is no social connectivity data 
+between users in these datasets and the links between entities are limited to 
+ratings by users on some items. With the Mixcloud dataset I am able to explore 
+the social graph of the users. Furthermore, the Mixcloud dataset provides much 
+richer metadata about its entities, as described above, than any of these 
+traditional datasets which give only enough data to make item
+recommendations. The Mixcloud dataset has scope for more interesting analysis.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preparation 
 \chapter{Preparation}
+\begin{verbatim}
 % - before coding
 % - Refinement of the proposal
 % - Professionalilty
-% - SoftEng practices
+% - SoftEng practices 
+\end{verbatim}
 
-\section{Current Solutions}
+\section{The Anatomy of the \mixurl\ Dataset}
 
-\section{Literature Review}
+\begin{verbatim}
+ - table of mixcloud API resources
+ - text description
+\end{verbatim}
 
-\section{Deciding on an Approach}
+\section{Programming Languages and New Tools}
 
-\section{Tools}
+\subsection{Python}
 
- \subsection{Programming Languages}
+\begin{verbatim}
+- Interpreted, high level -> faster development
+- Many existing libraries 
+\end{verbatim}
 
- \subsection{Databases}
+
+\subsection{Non-Relational Databases}
+
+\begin{verbatim}
+- JSON-based Document-oriented DBs: MongoDB, CouchDB
+- in-memory key-value stores: Redis, Memcached
+\end{verbatim}
+
+\section{Project Management}
+
+\begin{verbatim}
+- Some crap about "Iterative Model" of SoftEng ... ?! 
+\end{verbatim}
+
+\subsection{Version Control and Backup Strategy}
+\begin{verbatim}
+- Subversion on SRCF, daily automated backups etc.
+- Dataset gathered and stored in 3 locations 
+\end{verbatim}
+
+\subsection{Development Environment}
+\begin{verbatim}
+- PyCharm IDE (svn integration, cross-platform)
+\end{verbatim}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Implementation
 \chapter{Implementation}
+
+\begin{verbatim}
 % - Code produced
 % - Acknowledge use of existing tools
-% - Major milestone
+% - Major milestone 
+\end{verbatim}
 
-\section{The Dataset}
 
-\section{The Recommender}
+\section{Gathering the Data}
+
+\subsection{API Abstraction: A Python Wrapper}
+
+\begin{verbatim}
+- modelled on similar Facebook API Wrapper
+- Thorough object-oriented view representing anatomy as above
+- paged data complication
+- proxying, caching
+\end{verbatim}
+
+\subsection{The Crawler}
+
+\begin{verbatim}
+- proxying, caching
+- breadth-first search of graph using features
+- keep track of state with Redis 
+\end{verbatim}
+
+\subsection{Storing the Data}
+
+\subsubsection{MongoDB: A Document Store}
+\begin{verbatim}
+- JSON response directly to MongoDB
+- Complication with async writes
+- Complication with document and db size limit
+\end{verbatim}
+
+\section{Cleaning the Data}
+
+\begin{verbatim}
+- API bugs
+- Temporal errors (asymmetry)
+\end{verbatim}
+
+\subsection{Dataset Store Abstraction: MongoMix}
+\begin{verbatim}
+- MongoMix, abstraction of Mixcloud Data in MongoDB collections
+- Cleaning methods: count correction, asymmetry fixes
+\end{verbatim}
+
+\section{Exploring the Data}
+
+\subsection{Available Features}
+\begin{verbatim}
+- relevant features
+- stats on the data
+\end{verbatim}
+
+\subsection{Producing Test Datasets}
+\begin{verbatim}
+- "hiding" edges
+\end{verbatim}
+
+\section{Making Recommendations}
+
+\subsection{Social Graph Model and Edge Prediction}
+
+\subsection{Similarity Measures}
+
+\subsubsection{Intersection Size}
+
+\subsubsection{Jaccard Co-efficient}
+
+\subsubsection{Modified Jaccard}
+
+\subsubsection{Adamic-Adar}
+
+\subsubsection{Preferential Attachment}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Evaluation
 \chapter{Evaluation}
+
+\begin{verbatim}
 % - Signs of success
 % -  thorough and systematic testing
 % - figures
 % - Goals achieved
 % - Short-comings
-% - Amibtious logical conclusion
-
-\section{Measures}
+% - Amibtious logical conclusion 
+\end{verbatim}
 
 \section{Static}
 
