@@ -92,6 +92,13 @@ Social Networks}
 \newcommand{\todo}[1]{\ifdraft{\textsf{\color{red} TODO: #1}}\fi}
 \newcommand{\remark}[1]{\ifdraft{\textsf{\color{blue} #1}}\fi}
 
+% Some formatting shortcuts
+\newcommand{\rulewidth}{300pt}
+\newcommand{\halfrule}{
+  \begin{center}
+    {\rule{\rulewidth}{0.5pt}}
+  \end{center}}
+
 %% Colours
 \definecolor{darkgreen}{rgb}{0,0.3137,0.196}
 \definecolor{commentgreen}{rgb}{0.247,0.5,0.3725}
@@ -294,6 +301,8 @@ In this chapter I will explain my motivations for investigating recommender
 systems in general and the specific focus points of my project as
 presented in this dissertation using data from \mixurl.
 
+\halfrule
+
 \section{Motivation}
 
 The basic concept that underpins recommender systems is that the value of data
@@ -445,6 +454,7 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preparation 
 \chapter{Preparation}
+
 \begin{verbatim}
 % - before coding
 % - Refinement of the proposal
@@ -452,7 +462,20 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 % - SoftEng practices 
 \end{verbatim}
 
+This chapter describes how I refined the ideas presented in my project proposal
+before writing any code, and the working environments and best practices I
+adopted to minimise problems during the implementation stage.
+
+\halfrule
+
 \section{The Anatomy of the \mixurl\ Dataset}
+
+- Screenshot of Mixcloud frontpage
+
+\subsection{Base Resources}
+
+\subsection{Dynamic Resources}
+
 
 \begin{verbatim}
  - table of mixcloud API resources
@@ -468,6 +491,11 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 - Many existing libraries 
 \end{verbatim}
 
+\subsubsection{Useful Libraries}
+\begin{verbatim}
+- JSON, urllib2, pymongo, pyredis
+\end{verbatim}
+
 
 \subsection{Non-Relational Databases}
 
@@ -475,6 +503,10 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 - JSON-based Document-oriented DBs: MongoDB, CouchDB
 - in-memory key-value stores: Redis, Memcached
 \end{verbatim}
+
+\subsubsection{MongoDB: Persistent Data Store} 
+
+\subsubsection{Redis: In-Memory Semi-Persistent Data Structures} 
 
 \section{Project Management}
 
@@ -485,8 +517,10 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 \subsection{Version Control and Backup Strategy}
 \begin{verbatim}
 - Subversion on SRCF, daily automated backups etc.
-- Dataset gathered and stored in 3 locations 
+- Dataset gathered mirrored on a second machine and archived on 3 machines
 \end{verbatim}
+
+\subsubsection{Subversion} 
 
 \subsection{Development Environment}
 \begin{verbatim}
@@ -504,6 +538,7 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 % - Major milestone 
 \end{verbatim}
 
+\halfrule
 
 \section{Gathering the Data}
 
@@ -526,7 +561,7 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 
 \subsection{Storing the Data}
 
-\subsubsection{MongoDB: A Document Store}
+\subsubsection{MongoDB: A JSON Document Store}
 \begin{verbatim}
 - JSON response directly to MongoDB
 - Complication with async writes
@@ -541,6 +576,8 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 \end{verbatim}
 
 \subsection{Dataset Store Abstraction: MongoMix}
+
+
 \begin{verbatim}
 - MongoMix, abstraction of Mixcloud Data in MongoDB collections
 - Cleaning methods: count correction, asymmetry fixes
@@ -588,6 +625,8 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 % - Amibtious logical conclusion 
 \end{verbatim}
 
+\halfrule
+
 \section{Static}
 
 \section{Temporal}
@@ -598,10 +637,15 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 % - Reminder of aims and achievements
 % - Discussion in hindsight
 
+\halfrule
+
 \section{Further work}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
+
+\begin{thebibliography}{}
+\end{thebibliography}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendices
