@@ -147,6 +147,12 @@ Social Networks}
 \setlength{\parskip}{6pt}
 \linespread{1.2}
 
+\lstset{    basicstyle=\small\ttfamily, 
+            keywordstyle=\color{purple},
+            commentstyle=\color{commentgreen}\textit,
+            captionpos=b
+        }
+
 \begin{document}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -271,13 +277,13 @@ Without you, my time at Cambridge would have been a very different experience.
 \tableofcontents
 \clearpage
 
-%\clearpage
-%\listoffigures
+\clearpage
+\listoffigures
 
-%\clearpage
-%\listoftables
+\clearpage
+\listoftables
 
-%\clearpage
+\clearpage
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -470,17 +476,163 @@ adopted to minimise problems during the implementation stage.
 
 \section{The Anatomy of the \mixurl\ Dataset}
 
-- Screenshot of Mixcloud frontpage
+It is important to understand the nature of the only dataset that I use in this
+project. What follows is some semantics of how the data is structured, accessed
+and presented. 
+
+The general notion underlying \mixurl\ is that producers of audio
+content(so-called \emph{Cloudcasts})and their listeners are users of the
+website, and any user can upload content with rich metadata including artist and
+track information. The users can all then listen to and favorite content, and
+furthermore, they can follow other users in whom they are interested, either
+socially or because of their content.
+
+All the above data can be obtained from Mixcloud via their Application
+Programming Interfact (API) and I break this down in the following subsections.
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./images/mixcloud-home.png}
+ % mixcloud-home.png: 1021x1329 pixel, 72dpi, 36.02x46.88 cm, bb=0 0 1021 1329
+ \caption{\mixurl\ Homepage}
+ \label{fig:mix-home}
+\end{figure}
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./images/mixcloud-dashb.png}
+ % mixcloud-home.png: 1021x1329 pixel, 72dpi, 36.02x46.88 cm, bb=0 0 1021 1329
+ \caption{\mixurl\ Dashboard for logged-in user}
+ \label{fig:mix-dash}
+\end{figure}
+
+\subsection{The Mixcloud API: A RESTful Exchange of JSON}
+
+The Mixcloud API, accessible via HTTP requests on \url{http://api.mixcloud.com},
+allows for the retrieval of data about the various entities and relationship
+described above, such as users and cloudcasts. The API responds to HTTP methods
+with a JSON\footnote{JavaScript Object Notation}-formatted representation of
+the data for the resource requested in the URL path. So, for instance, a HTTP
+GET request sent to \url{http://api.mixcloud.com/amirhhz} will respond with a
+body containing my user information as follows:
+
+\begin{lstlisting}[language=Java,caption=Sample output from api.mixcloud.com,
+label=lst:api-sample]
+{
+    "username": "amirhhz", 
+    "city": "", 
+    "cloudcast_count": 0, 
+    "following_count": 11, 
+    "url": "http://www.mixcloud.com/amirhhz/", 
+    "pictures": {
+        "small": /* URL OMMITTED */, 
+        "large": /* URL OMMITTED */, 
+        "medium": /* URL OMMITTED */, 
+    }, 
+    "listen_count": 20, 
+    "updated_time": "2011-04-13T18:36:57Z", 
+    "created_time": "2009-09-07T19:10:17Z", 
+    "biog": "", 
+    "key": "/amirhhz/", 
+    "country": "United Kingdom", 
+    "follower_count": 28, 
+    "favorite_count": 4, 
+    "name": "amirhhz"
+} 
+\end{lstlisting}
+
+The Mixcloud API adheres to the Representational State Transfer (REST)
+style of software architecture, a simple idiom: clients send requests for the
+state of a resource to servers and receive an appropriate response containing a
+representation of the resource's state at the time. HTTP follows this simple
+idiom with its simple methods (e.g. GET, POST, DELETE) and RESTful API's such as
+Mixcloud's simply specialise this mechanism to suit their needs of Creating,
+Reading, Updating, and Deleting (CRUD) resources on servers as requested by
+clients.
 
 \subsection{Base Resources}
+In the context of the Mixcloud API, I shall refer to resources in Table 
+\ref{tab:base-resources} as \emph{base
+resources}.
+
+
+\begin{table}[h]
+  \begin{center}
+  \begin{tabular}{r l}
+Base Resource 	& API path scheme \\
+\hline
+User 		& /<user>/ \\
+Cloudcast	& /<user>/<cloudcast>/ \\
+Tag 		& /tag/<tag>/ \\
+Category 	& /categories>/<category>/ \\
+Artist 		& /artist/<artist>/ \\
+Track		& /track/<artist>/<trackname>/ \\
+
+  \end{tabular}
+   
+  \end{center}
+\caption{Mixcloud API Base Resources and their path schemes}
+\label{tab:base-resources}
+\end{table}
+
+The main characteristic of base resources is that once they are created the
+content of their API data changes rarely or by minimal amounts, as opposed to
+the dynamic resources listed below in Table \ref{tab:dyn-resources}.
+
+\todo{Adding the "metadata=1" argument includes links to their dynamic
+resources, too, as listed further down e.g.
+"http://api.mixcloud.com/amirhhz/?metadata=1".}
+
 
 \subsection{Dynamic Resources}
+Each base resource has some \emph{dynamic resources} associated with
+itwhich effectively return the results of queries on the base resources, for
+example, who are the followers of user X. These are shown in Table
+\ref{tab:dyn-resources}.
 
+\begin{table}[h]
+  \begin{center}
+  \begin{tabular}{r l}
+Dynamic Resource 	& Path to add to to base resource \\
+\hline
+Activity feed 	& feed/ \\
+List of followers & followers/ \\
+List of followees & following/ \\
+Associated comments & comments/ \\
+Favorited cloudcasts & favorites/ \\
+Uploaded cloudcasts & cloudcasts/ \\
+Cloudcasts listened to & listens/ \\
+Listeners of a cloudcast & listeners/ \\
+Similar cloudcasts & similar/ \\
+Popular cloudcasts & popular/ \\
+New cloudcasts & new/ \\
+Associated users & users/ \\
+Staff-picked associated users & userpick\_users/ \\
+Staff-picked associated cloudcasts & userpick\_cloudcasts/ \\
+  \end{tabular}
+   
+  \end{center}
+\caption{Mixcloud API Dynamic Resources}
+\label{tab:dyn-resources}
+\end{table}
+
+The required response from these dynamic resource may span several
+so-called ``pages`` of JSON data which are navigated by by adding HTTP
+arguments to the dynamic resource URL (e.g. "?offset=0\&limit=100")
+
+%And there are these miscellany of resources, too:
+%/categories/
+%/popular/
+%/popular/hot/
+%/new/
+%/search/?q=<query>\&type=<tag|cloudcast|user|artist|track>
 
 \begin{verbatim}
  - table of mixcloud API resources
  - text description
 \end{verbatim}
+
+
 
 \section{Programming Languages and New Tools}
 
