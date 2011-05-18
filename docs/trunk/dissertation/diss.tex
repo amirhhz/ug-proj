@@ -15,7 +15,7 @@ Social Networks}
 \usepackage[T1]{fontenc}
 \usepackage{a4wide}
 \usepackage{parskip}
-%\usepackage{hyperref}
+\usepackage{hyperref}
 \usepackage{url}
 \usepackage{amsmath}
 %\usepackage{proof}
@@ -42,6 +42,7 @@ Social Networks}
 \usetikzlibrary{decorations.pathmorphing}
 
 % Tables
+\usepackage{array}
 \usepackage{booktabs}
 \usepackage{colortbl}
 \usepackage{longtable}
@@ -140,14 +141,14 @@ Social Networks}
 \pagenumbering{roman}
 \pagestyle{plain}
 
-%\setcounter{secnumdepth}{2}
-%\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{3}
 
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt}
 \linespread{1.2}
 
-\lstset{    basicstyle=\small\ttfamily, 
+\lstset{    basicstyle=\footnotesize\ttfamily, 
             keywordstyle=\color{purple},
             commentstyle=\color{commentgreen}\textit,
             captionpos=b
@@ -186,7 +187,7 @@ Social Networks}
 
 \vfill
 
-\clearpage
+\cleardoublepage
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -224,10 +225,10 @@ data on \mixurl\ as possible.
 
 The subsequent recommender system I wrote achieves the above aims by modelling
 the recommendation process as an edge prediction problem: given a social graph,
-it tries to predict what edges will form in the future between unconnected nodes
-and assigns a confidence value to the predictions. In essence, this is done by
-calculating similarity values between nodes and choosing the most similar
-unconnected nodes as predictions.
+it tries to predict what edges are most likely to form in the future between
+unconnected nodes and assigns a confidence value to the predictions. In essence,
+this is done by calculating similarity values between nodes and choosing the
+most similar unconnected nodes as predictions.
 
 \subsection*{Special Difficulties}
 
@@ -254,7 +255,7 @@ substantial extent for a comparable purpose.
 \leftline{Date}
 
 
-\newpage
+\clearpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Acknowledgements
@@ -265,12 +266,13 @@ If this dissertation turns out to be anything worth the paper it's printed on I
 have the following people to thank:
 
 \begin{itemize}
- \item {\bf Liam~McNamara}
- \item {\bf Helen~Ennos}, for all her feedback, encouragement and support.
-Without you, my time at Cambridge would have been a very different experience. 
+ \item {\bf Liam~McNamara}, for all the insightful advice along the way and
+generally being an awesome guy.
+ \item {\bf Helen~Ennos}, for all her encouragement and support. Without you, my
+time at Cambridge would have been a very different experience. 
 \end{itemize}
 
-\clearpage
+\cleardoublepage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Table of Contents
@@ -284,6 +286,9 @@ Without you, my time at Cambridge would have been a very different experience.
 \listoftables
 
 \clearpage
+\lstlistoflistings
+
+\cleardoublepage
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -334,16 +339,19 @@ social activities to take part in, simply because the options are overwhelming.
 If we treat the users of a social network as a community, it is clear that such
 a community will need the investment mentioned above from its users to reach
 some critical mass -- the point at which it is valuable for others to join 
-or contribute to the network because the majority of their friends have, or so 
-much of the content they consume is accessible via the service. This will 
-continually increase the richness and quality of the service the community 
-receives (assuming the service provider keeps up and adapts to changes!) and 
-increase the lifetime and utility of the service for its users, too. Of course, 
-here we are concerned with social networks that aim to reach the mainstream and 
-are not inherently limited to a select number of users. For instance, a social 
-network for the community of world experts on network congestion analysis is 
-bound to hit its maximum membership limit very quickly and not be much more 
-useful to its users than email or more traditional communication methods.
+or contribute to the network\footnote{Best described by Beckstrom's Law - The
+value of a network equals the net value added to each user's transactions
+conducted through that network, summed over all users.} because the majority of
+their friends have, or so much of the content they consume is accessible via the
+service. This will continually increase the richness and quality of the service
+the community receives (assuming the service provider keeps up and adapts to
+changes!) and increase the lifetime and utility of the service for its users,
+too. Of course, here we are concerned with social networks that aim to reach the
+mainstream and are not inherently limited to a select number of users. For
+instance, a social network for the community of world experts on network
+congestion analysis is bound to hit its maximum membership limit very quickly
+and not be much more useful to its users than email or more traditional
+communication methods.
 
 From a commercial perspective of a service provider, having users remain active
 on the network and incentivise others to do so, too, is paramount. It is
@@ -358,12 +366,12 @@ after reaching 300 million users. This means that the investors who enable such
 ventures at the start need to be convinced that the service has the potential 
 to reach popularity and therefore provide a return on investment. Of the many 
 strategies that can be used to maintain the growth of a social network, 
-implementing a good recommender system is standard practice. It should be noted 
-that recommendations are difficult, if not infeasible, to make at the very 
-beginning of a network's lifetime due to the \emph{cold start} problem, that 
-is, when there is insufficient data to base recommendations on. Therefore, the 
-focus of this project is on stages of a network's lifetime when it is
-nearinafterg maturity and this issue hasbeen overcome.
+implementing a good friend recommender system is standard practice. It should be
+noted that recommendations are difficult, if not infeasible, to make at the
+very beginning of a network's lifetime due to the \emph{cold start} problem,
+that is, when there is insufficient data to base recommendations on. Therefore,
+the focus of this project is on stages of a network's lifetime when it is
+nearing maturity and this issue hasbeen overcome.
 
 \subsection{Wider Context}
 
@@ -402,20 +410,18 @@ of social networking and the Web as it experiences a paradigm shift from a
 
 \section{The \mixurl\ Dataset}
 
-I will work on data from the \mixurl. They are a successful audio content
-distribution website, aiming to be the ``YouTube of Radio''. They provide a
-platform for user-generated audio content, ranging from podcasts to DJ mixes, to
-be easily accessed by anyone. They have been operating for nearly two years and
-have in the order of 100,000 users and a similar number of
-so-called ``Cloudcasts'' (uploaded audio content). They provide
-their niche community of users with social networking features such as
+\mixurl\ are a successful audio content distribution website, aiming to be the
+``YouTube of Radio''. They provide a platform for user-generated audio content,
+ranging from podcasts to DJ mixes, to be easily accessed by anyone. They have
+been operating for nearly two years and have in the order of 100,000 users and a
+similar number of so-called ``Cloudcasts'' (uploaded audio content). They
+provide their niche community of users with social networking features such as
 Twitter-style following, Facebook-style activity updates, favouriting of
-Cloudcasts and commenting, and a record of listening history. 
-The user-uploaded Cloudcasts are also heavily annotated with tags, categories, 
-text descriptions and other metadata.This wealth of metadata about Mixcloud's
-users and content is available via their
-public API\footnote{\url{http://api.mixcloud.com}} and I gathered the data I
-need from it.
+Cloudcasts and commenting, and a record of listening history. The user-uploaded
+Cloudcasts are also heavily annotated with tags, categories, text descriptions
+and other metadata. This wealth of metadata about Mixcloud's users and content
+is available via their public API\footnote{\url{http://api.mixcloud.com}} and I
+gathered the data I need from it.
 
 \subsection{Focus on Social Recommendations}
 At the time of writing, \mixurl\ implements some simple mechanisms for 
@@ -476,14 +482,14 @@ adopted to minimise problems during the implementation stage.
 
 \section{The Anatomy of the \mixurl\ Dataset}
 
-It is important to understand the nature of the only dataset that I use in this
+It is important to understand the nature of the dataset that I use in this
 project. What follows is some semantics of how the data is structured, accessed
 and presented. 
 
 The general notion underlying \mixurl\ is that producers of audio
-content(so-called \emph{Cloudcasts})and their listeners are users of the
+content (so-called \emph{Cloudcasts}) and their listeners are users of the
 website, and any user can upload content with rich metadata including artist and
-track information. The users can all then listen to and favorite content, and
+track information. The users can then listen to and favorite content, and
 furthermore, they can follow other users in whom they are interested, either
 socially or because of their content.
 
@@ -512,11 +518,12 @@ The Mixcloud API, accessible via HTTP requests on \url{http://api.mixcloud.com},
 allows for the retrieval of data about the various entities and relationship
 described above, such as users and cloudcasts. The API responds to HTTP methods
 with a JSON\footnote{JavaScript Object Notation}-formatted representation of
-the data for the resource requested in the URL path. So, for instance, a HTTP
+the data (see subsection \ref{subsec:nonrel} for more details) for the resource
+specified by the URL path. So, for instance, a HTTP
 GET request sent to \url{http://api.mixcloud.com/amirhhz} will respond with a
 body containing my user information as follows:
 
-\begin{lstlisting}[language=Java,caption=Sample output from api.mixcloud.com,
+\begin{lstlisting}[language=Java,caption=Sample response from the Mixcloud API,
 label=lst:api-sample]
 {
     "username": "amirhhz", 
@@ -558,8 +565,8 @@ resources}.
 
 \begin{table}[h]
   \begin{center}
-  \begin{tabular}{r l}
-Base Resource 	& API path scheme \\
+  \begin{tabular}{r >{\ttfamily}l<{\normalfont}}
+Base Resource 	& \textnormal{API path scheme} \\
 \hline
 User 		& /<user>/ \\
 Cloudcast	& /<user>/<cloudcast>/ \\
@@ -586,14 +593,14 @@ resources, too, as listed further down e.g.
 
 \subsection{Dynamic Resources}
 Each base resource has some \emph{dynamic resources} associated with
-itwhich effectively return the results of queries on the base resources, for
-example, who are the followers of user X. These are shown in Table
+it which effectively return the results of queries on the base resources, for
+example, ``who are the followers of user X?''. These are shown in Table
 \ref{tab:dyn-resources}.
 
 \begin{table}[h]
   \begin{center}
-  \begin{tabular}{r l}
-Dynamic Resource 	& Path to add to to base resource \\
+  \begin{tabular}{r >{\ttfamily}l<{\normalfont}}
+Dynamic Resource 	& \textnormal{Path to add to to base resource} \\
 \hline
 Activity feed 	& feed/ \\
 List of followers & followers/ \\
@@ -618,7 +625,7 @@ Staff-picked associated cloudcasts & userpick\_cloudcasts/ \\
 
 The required response from these dynamic resource may span several
 so-called ``pages`` of JSON data which are navigated by by adding HTTP
-arguments to the dynamic resource URL (e.g. "?offset=0\&limit=100")
+arguments to the dynamic resource URL (e.g. \texttt{?offset=0\&limit=100}).
 
 %And there are these miscellany of resources, too:
 %/categories/
@@ -627,57 +634,137 @@ arguments to the dynamic resource URL (e.g. "?offset=0\&limit=100")
 %/new/
 %/search/?q=<query>\&type=<tag|cloudcast|user|artist|track>
 
-\begin{verbatim}
- - table of mixcloud API resources
- - text description
-\end{verbatim}
-
-
-
 \section{Programming Languages and New Tools}
 
 \subsection{Python}
 
-\begin{verbatim}
-- Interpreted, high level -> faster development
-- Many existing libraries 
-\end{verbatim}
+In deciding what programming language to use for most of the coding in this
+project, I had the choice of Java or C as languages I am familiar with from the
+Computer Science Tripos, or Python with which I am familiar from using it in my
+own time. In the end I chose Python for three main reasons which I will explore:
+\begin{itemize}
+ \item it is an interpreted and less verbose language; 
+ \item there are many relevant and robust libraries for Python; 
+ \item the higher-level nature of Python is a better fit for the purposes
+of interfacing with high-level interfaces over the Web and other data-centric
+operations.
+\end{itemize}
 
-\subsubsection{Useful Libraries}
-\begin{verbatim}
-- JSON, urllib2, pymongo, pyredis
-\end{verbatim}
+\todo{expand on above}
 
+\subsection{Non-Relational Databases and Data Formats}
+\label{subsec:nonrel}
 
-\subsection{Non-Relational Databases}
+All the data that I will be working on from the Mixcloud API will be presented
+in the JSON data format (described below), served as text documents by the API
+server. Although this data would be coming from \mixurl's relational MySQL
+database, it will have lost its relational nature when accessed via their API.
+Instead of trying to reconstruct this data back into a relational database, I
+decided to use a non-relational database system, MongoDB, to store the JSON
+documents as I received them. This would preserve the data in its presented
+format but would make querying and working with it significantly easier than,
+for instance, using flat files.
 
-\begin{verbatim}
-- JSON-based Document-oriented DBs: MongoDB, CouchDB
-- in-memory key-value stores: Redis, Memcached
-\end{verbatim}
+\subsubsection{The JSON (JavaScript Object Notation) Data Interchange Format}
 
-\subsubsection{MongoDB: Persistent Data Store} 
+The simplest description of JSON is to assume the reader is familiar with XML
+and say that JSON is a more lightweight, human-readable alternative, based on
+JavaScript object syntax. Code listing \ref{lst:api-sample} provides an
+illustration.
 
-\subsubsection{Redis: In-Memory Semi-Persistent Data Structures} 
+Python has standard library support for JSON encoding and decoding (with the
+\texttt{json} package) and there is a natural and intuitive mapping from JSON
+data types to Python data types as shown in table \ref{tab:type-mapping}.
+
+\begin{table}[h]
+  \begin{center}
+  \begin{tabular}{>{\ttfamily}c<{\normalfont} | >{\ttfamily}c<{\normalfont}}
+\textnormal{JSON} & \textnormal{Python} \\
+\hline
+object	& dict \\
+array	& list \\
+string	& unicode \\
+number (int)	& int, long  \\
+number (real)	& float  \\
+true	& True  \\
+false	& False  \\
+null	& None
+  \end{tabular}
+  \end{center}
+\caption{Mapping of JSON and Python data types}
+\label{tab:type-mapping}
+\end{table}
+
+\subsubsection{MongoDB: A JSON Document Store} 
+
+As I mentioned above, the most appropriate way for me to manage the JSON
+documents coming from the Mixcloud API was to save them in a database
+that closely retained the data format. In recent years, new 
+\emph{document-oriented} non-relational\footnote{As an aside, the non-relational
+aspect of these systems allows for better performance and scalability for some
+applications, but that is not of signficance here.} database systems have risen
+in popularity in part because they are a more natural fit for some problems,
+such as that presented by my project. The main characteristic of these is that
+data stored in the database is schemaless, so when the exact nature of the data
+and its structure is variable, document-oriented databases are preferred.
+MongoDB\footnote{\url{http://www.mongodb.org/}} is the database is the database
+system I chose, but it was not the only option I had, the closest next contender
+being CouchDB\footnote{\url{http://couchdb.apache.org/}}.
+
+There similarities between MongoDB and CouchDB are encompassed by the fact that
+both have a document-oriented data model with the JSON
+Specification\footnote{\url{http://www.json.org}} forming the basis of the
+documents they store. For both the concept of a document is analagous to a row
+in a traditional relational database table. 
+
+From there on they start to differ. MongoDB provides the storage abstraction of
+\emph{collections} of documents in each database, which is analagous to tables
+in a relational database. CouchDB stores documents in a database without
+this hierarchical middle ground. On this issue, I preferred MongoDB's more
+flexible approach.
+
+The second difference is the interface the two systems provide for interaction
+with the database. CouchDB has a RESTful HTTP interface whereas MongoDB has a
+custom interface over TCP/IP. CouchDB's approach may at first seem more
+attractive, but in practice the official MongoDB driver for Python,
+\texttt{PyMongo}\footnote{\url{http://api.mongodb.org/python/current/}},
+presents a much cleaner and better-documented API than the CouchDB equivalent,
+and therefore makes manipulating data programmatically more intuitive.
+
+The final reason why I picked MongoDB over CouchDB was their respective query
+methodology. In CouchDB, every non-trivial query or view must be written as a
+Map/Reduce
+operation\footnote{\url{http://labs.google.com/papers/mapreduce.html}} and
+pre-indexed. MongoDB is more lenient and allows for ad-hoc and more SQL-like
+queries to be performed on the database and I felt this flexibility would be
+advantageous.
+
+Although it didn't factor into my decision directly, there is another
+difference between the two database systems, in the way their store documents.
+CouchDB stores JSON documents as presented whereas MongoDB performs a
+binary-encoded serialisation of the JSON documents (into
+BSON\footnote{\url{http://bsonspec.org/}} , or Binary JSON) before saving them.
+This has the advantage of making data storage more efficient and improve
+traversal speed and indexing.
 
 \section{Project Management}
 
 \begin{verbatim}
-- Some crap about "Iterative Model" of SoftEng ... ?! 
+- Some crap about "Iterative Model" of SoftEng ... ?!
 \end{verbatim}
 
 \subsection{Version Control and Backup Strategy}
-\begin{verbatim}
-- Subversion on SRCF, daily automated backups etc.
-- Dataset gathered mirrored on a second machine and archived on 3 machines
-\end{verbatim}
+
 
 \subsubsection{Subversion} 
+- Subversion on SRCF, daily automated backups etc.
+
+\subsubsection{Database Mirroring}
+- Dataset gathered mirrored on a second machine and archived on 3 machines
+
 
 \subsection{Development Environment}
-\begin{verbatim}
-- PyCharm IDE (svn integration, cross-platform)
-\end{verbatim}
+- PyCharm IDE (svn integration, cross-platform, JSON parser)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
