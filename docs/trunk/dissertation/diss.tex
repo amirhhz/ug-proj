@@ -199,7 +199,7 @@ Name:               & \bf \authorname \\
 College:            & \bf \authorcollege \\
 Project Title:      & \bf \projtitle \\
 Examination:        & \bf Computer Science Tripos, Part II, June 2011 \\
-Word Count:         & \bf \todo{MANY words} \\
+Word Count:         & \bf \todo{~4000 words atm} \\
 Project Originator: & \bf \authorname \\
 Supervisor:         & \bf \projsupervisor \\
 \end{tabular}
@@ -217,18 +217,16 @@ future state of the graph. From the outset, the dataset to be used for the
 project was that of the online audio-sharing community \mixurl.
 
 \subsection*{Work Completed}
+I modelled the Mixcloud dataset's entities and wrote an abstraction layer for
+the Mixcloud API. I used this in a crawler program that downloaded and stored
+the data on \mixurl.
 
-The initial part of the work was obtaining the Mixcloud dataset. I modelled the
-dataset's entities and wrote an abstraction layer for the Mixcloud API. I
-then used this in a crawler program that downloaded and stored as much of the
-data on \mixurl\ as possible.
-
-The subsequent recommender system I wrote achieves the above aims by modelling
-the recommendation process as an edge prediction problem: given a social graph,
+The recommender system I wrote achieves the above aims by modelling the
+recommendation process as an edge prediction problem: given a social graph,
 it tries to predict what edges are most likely to form in the future between
-unconnected nodes and assigns a confidence value to the predictions. In essence,
-this is done by calculating similarity values between nodes and choosing the
-most similar unconnected nodes as predictions.
+unconnected nodes and assigns a confidence value to the predictions. This is
+done by calculating similarity values between nodes and choosing the most
+similar unconnected nodes as predictions.
 
 \subsection*{Special Difficulties}
 
@@ -268,7 +266,7 @@ have the following people to thank:
 \begin{itemize}
  \item {\bf Liam~McNamara}, for all the insightful advice along the way and
 generally being an awesome guy.
- \item {\bf Helen~Ennos}, for all her encouragement and support. Without you, my
+ \item {\bf Helen~Ennos}, for all her encouragement and support. Without her, my
 time at Cambridge would have been a very different experience. 
 \end{itemize}
 
@@ -446,8 +444,13 @@ layer on top of their distribution layer is the next natural focus.
 \subsection{The Temporal Dimension}
 
 As I am collecting my own data firsthand, I can look at the performance of my
-recommendations over temporal snapshots of the dataset.
+recommendations over temporal snapshots of the dataset. This approach could be
+very interesting because changes to the dataset over time provide the ground
+truths that my recommender system would be trying to replicate, since I am
+approaching recommendations as the same as making predictions.
+
 \todo{more detail here?}
+
 \subsection{Comparison with other Available Datasets}
 
 The most widely used datasets in discussions on recommender systems are the 
@@ -467,13 +470,6 @@ recommendations. The Mixcloud dataset has scope for more interesting analysis.
 % Preparation 
 \chapter{Preparation}
 
-\begin{verbatim}
-% - before coding
-% - Refinement of the proposal
-% - Professionalilty
-% - SoftEng practices 
-\end{verbatim}
-
 This chapter describes how I refined the ideas presented in my project proposal
 before writing any code, and the working environments and best practices I
 adopted to minimise problems during the implementation stage.
@@ -481,6 +477,7 @@ adopted to minimise problems during the implementation stage.
 \halfrule
 
 \section{The Anatomy of the \mixurl\ Dataset}
+\label{sec:mix-anatomy}
 
 It is important to understand the nature of the dataset that I use in this
 project. What follows is some semantics of how the data is structured, accessed
@@ -586,9 +583,9 @@ The main characteristic of base resources is that once they are created the
 content of their API data changes rarely or by minimal amounts, as opposed to
 the dynamic resources listed below in Table \ref{tab:dyn-resources}.
 
-\todo{Adding the "metadata=1" argument includes links to their dynamic
-resources, too, as listed further down e.g.
-"http://api.mixcloud.com/amirhhz/?metadata=1".}
+%\todo{Adding the "metadata=1" argument includes links to their dynamic
+%resources, too, as listed further down e.g.
+%"http://api.mixcloud.com/amirhhz/?metadata=1".}
 
 
 \subsection{Dynamic Resources}
@@ -634,7 +631,7 @@ arguments to the dynamic resource URL (e.g. \texttt{?offset=0\&limit=100}).
 %/new/
 %/search/?q=<query>\&type=<tag|cloudcast|user|artist|track>
 
-\section{Programming Languages and New Tools}
+\section{Engineering Tools}
 
 \subsection{Python}
 
@@ -726,7 +723,7 @@ flexible approach.
 The second difference is the interface the two systems provide for interaction
 with the database. CouchDB has a RESTful HTTP interface whereas MongoDB has a
 custom interface over TCP/IP. CouchDB's approach may at first seem more
-attractive, but in practice the official MongoDB driver for Python,
+attractive, but in practice the official MongoDB driver for Python, 
 \texttt{PyMongo}\footnote{\url{http://api.mongodb.org/python/current/}},
 presents a much cleaner and better-documented API than the CouchDB equivalent,
 and therefore makes manipulating data programmatically more intuitive.
@@ -740,36 +737,68 @@ queries to be performed on the database and I felt this flexibility would be
 advantageous.
 
 Although it didn't factor into my decision directly, there is another
-difference between the two database systems, in the way their store documents.
-CouchDB stores JSON documents as presented whereas MongoDB performs a
+difference between the two database systems, which is in the way their store
+documents. CouchDB stores JSON documents as presented whereas MongoDB performs a
 binary-encoded serialisation of the JSON documents (into
 BSON\footnote{\url{http://bsonspec.org/}} , or Binary JSON) before saving them.
-This has the advantage of making data storage more efficient and improve
+This has the advantage of making data storage more efficient and improving
 traversal speed and indexing.
 
-\section{Project Management}
+\section{Project Management Tools}
 
-\begin{verbatim}
-- Some crap about "Iterative Model" of SoftEng ... ?!
-\end{verbatim}
+As this project amounts to a significant amount of work with a large dataset, it
+was important that I approached its management and development with a
+professional attitude and appropriate tools to help this. Most
+importantly account, I was aware of the need for redundancy and safe-keeping of
+both code and data, and the use of a version control system (VCS) to manage the
+source code I would write myself.
 
-\subsection{Version Control and Backup Strategy}
+\subsection{Source Code Management using Subversion} 
 
+I used Subversion as my VCS, with my master code repository residing on the SRCF
+servers\footnote{The Student-Run Computing Facility -
+\url{http://www.srcf.ucam.org/}}. I chose the SRCF instead of the PWF servers
+provided by the Computing Service because it allows passwordless secure
+shell access using public key authentication. This allowed me to automate daily
+backups of my repository, which were then stored in my SRCF account and also
+\texttt{rsync}ed to two separate computers I personally own. I would also
+manually make copies of the backups to my PWF account at significant
+milestones. In addition to all the above, I would always have a copy of my code
+checked out on my personal machines.
 
-\subsubsection{Subversion} 
-- Subversion on SRCF, daily automated backups etc.
+\subsection{Database Mirroring}
 
-\subsubsection{Database Mirroring}
-- Dataset gathered mirrored on a second machine and archived on 3 machines
+One standard feature of MongoDB which I did not describe earlier was the ability
+to setup several instances of a database in Master-Slave configurations. As the
+size of the data I was working with prohibited the use of the PWF or SRCF as
+backup destinations, I had to rely on careful management of the data on my own
+machines, and I did so by running the master instances of my databases on my
+laptop (which I rarely use as a mobile device) and had my other two machines run
+the slave instances. This ensured that all write operations to the master
+database would be mirrored across my LAN to the slaves. Once I had obtained all
+my data from the API and stored it, I was also able to write dumps of the data
+to files on disk and store these dumps on DVDs for safe-keeping.
 
+\subsection{Integrated Development Environment}
 
-\subsection{Development Environment}
-- PyCharm IDE (svn integration, cross-platform, JSON parser)
+I used the PyCharm IDE\footnote{\url{http://www.jetbrains.com/pycharm/}} for my
+development environment, as it is simply the most feature-rich and
+productivity-enhancing tool I know when working with Python programs. It
+provides the standard features expected of any modern IDE (syntax-highlighting,
+visual debugging tools, project-specific environments and libraries, etc.). But
+the reason why I chose it instead of, for instance, Eclipse IDE were its deep
+Subversion integration which provides on-the-fly \texttt{diff} information in
+its code editor interface, a much better cross-platform experience than Eclipse
+(they both run on the JVM), and native support for JavaScript and therefor JSON
+files, which made exploring sample API outputs a breeze. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Implementation
 \chapter{Implementation}
+
+In this chapter I describe the programming tasks that I completed to achieve the
+aims of the project and explain the engineering choices I made in doing so. 
 
 \begin{verbatim}
 % - Code produced
@@ -780,6 +809,9 @@ traversal speed and indexing.
 \halfrule
 
 \section{Gathering the Data}
+
+I described the Mixcloud API resources in section \ref{sec:mix-anatomy}, and my
+first coding effort was to gather as much of the data on \mixurl\ as possible.
 
 \subsection{API Abstraction: A Python Wrapper}
 
@@ -893,6 +925,17 @@ traversal speed and indexing.
 \chapter*{Appendix}
 \addcontentsline{toc}{chapter}{Appendix}
 
+% Adjustments headers
+\pagestyle{fancy}
+\fancyhead[LO]{\emph{APPENDIX}}
+\fancyhead[RE]{\emph{APPENDIX}}
+
+\setcounter{chapter}{1}
+\setcounter{section}{0}
+\renewcommand{\thechapter}{\Alph{chapter}}
+
 \section{First Appendix}
+\section{Second Appendix}
+\section{Third Appendix}
 
 \end{document}
