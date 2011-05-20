@@ -20,6 +20,7 @@ Social Networks}
 \usepackage{amsmath}
 %\usepackage{proof}
 \usepackage{comment}
+\usepackage{engord}
 
 % Conditionals (for draft mode)
 \usepackage{ifthen}
@@ -70,7 +71,7 @@ Social Networks}
 %     is not part of the final dissertation !!!
 
 \newboolean{draft}
-\setboolean{draft}{true}
+\setboolean{draft}{false}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -219,7 +220,7 @@ project was that of the online audio-sharing community \mixurl.
 \subsection*{Work Completed}
 I modelled the Mixcloud dataset's entities and wrote an abstraction layer for
 the Mixcloud API. I used this in a crawler program that downloaded and stored
-the data on \mixurl.
+the data from \mixurl.
 
 The recommender system I wrote achieves the above aims by modelling the
 recommendation process as an edge prediction problem: given a social graph,
@@ -260,15 +261,18 @@ substantial extent for a comparable purpose.
 
 \section*{Acknowledgements}
 
-If this dissertation turns out to be anything worth the paper it's printed on I
-have the following people to thank:
+If this dissertation had turned out as I had hoped, I would be thanking those
+few special individuals who have encouraged and supported me over the last
+three years. But as it is, I have let them down, and my gratitude shall remain
+unexpressed for now.
 
-\begin{itemize}
- \item {\bf Liam~McNamara}, for all the insightful advice along the way and
-generally being an awesome guy.
- \item {\bf Helen~Ennos}, for all her encouragement and support. Without her, my
-time at Cambridge would have been a very different experience. 
-\end{itemize}
+%\begin{itemize}
+% \item {\bf Liam~McNamara}, for all the insightful advice along the way and
+%generally being an awesome guy.
+% \item {\bf Helen~Ennos}, for all her encouragement and support. Without her,
+%my
+%time at Cambridge would have been a very different experience. 
+%\end{itemize}
 
 \cleardoublepage
 
@@ -444,18 +448,17 @@ layer on top of their distribution layer is the next natural focus.
 \subsection{The Temporal Dimension}
 
 As I am collecting my own data firsthand, I can look at the performance of my
-recommendations over temporal snapshots of the dataset. This approach could be
-very interesting because changes to the dataset over time provide the ground
-truths that my recommender system would be trying to replicate, since I am
-approaching recommendations as the same as making predictions.
+recommendations over snapshots of the dataset at different points in time. This
+approach could be very interesting because changes to the dataset over time
+could be taken to be the ground truths that my recommender system would be
+trying to replicate.
 
-\todo{more detail here?}
 
 \subsection{Comparison with other Available Datasets}
 
 The most widely used datasets in discussions on recommender systems are the 
 MovieLens, EachMovie, Book-Crossing and Jester Jokes datasets\footnote{
-All of these datasets are available via\url{http://www.grouplens.org/node/12}} 
+All of these datasets are available via \url{http://www.grouplens.org/node/12}} 
 which contain items and user ratings on their respective titular item types. 
 Though the quality of these datasets is proven, they have limitations for my 
 intended project goals. In particular, there is no social connectivity data 
@@ -486,7 +489,7 @@ and presented.
 The general notion underlying \mixurl\ is that producers of audio
 content (so-called \emph{Cloudcasts}) and their listeners are users of the
 website, and any user can upload content with rich metadata including artist and
-track information. The users can then listen to and favorite content, and
+track information. The users can then listen to and favourite content, and
 furthermore, they can follow other users in whom they are interested, either
 socially or because of their content.
 
@@ -603,7 +606,7 @@ Activity feed 	& feed/ \\
 List of followers & followers/ \\
 List of followees & following/ \\
 Associated comments & comments/ \\
-Favorited cloudcasts & favorites/ \\
+Favourited cloudcasts & favorites/ \\
 Uploaded cloudcasts & cloudcasts/ \\
 Cloudcasts listened to & listens/ \\
 Listeners of a cloudcast & listeners/ \\
@@ -621,7 +624,7 @@ Staff-picked associated cloudcasts & userpick\_cloudcasts/ \\
 \end{table}
 
 The required response from these dynamic resource may span several
-so-called ``pages`` of JSON data which are navigated by by adding HTTP
+so-called ``pages'' of JSON data which are navigated by by adding HTTP
 arguments to the dynamic resource URL (e.g. \texttt{?offset=0\&limit=100}).
 
 %And there are these miscellany of resources, too:
@@ -640,14 +643,14 @@ project, I had the choice of Java or C as languages I am familiar with from the
 Computer Science Tripos, or Python with which I am familiar from using it in my
 own time. In the end I chose Python for three main reasons which I will explore:
 \begin{itemize}
- \item it is an interpreted and less verbose language; 
- \item there are many relevant and robust libraries for Python; 
+ \item there are many relevant and robust libraries for Python, with excellent
+documentation; 
  \item the higher-level nature of Python is a better fit for the purposes
 of interfacing with high-level interfaces over the Web and other data-centric
-operations.
+operations;
+ \item it is an interpreted and less verbose language, which will greatly
+imporve the rate of development, testing and debugging. 
 \end{itemize}
-
-\todo{expand on above}
 
 \subsection{Non-Relational Databases and Data Formats}
 \label{subsec:nonrel}
@@ -664,14 +667,15 @@ for instance, using flat files.
 
 \subsubsection{The JSON (JavaScript Object Notation) Data Interchange Format}
 
-The simplest description of JSON is to assume the reader is familiar with XML
-and say that JSON is a more lightweight, human-readable alternative, based on
-JavaScript object syntax. Code listing \ref{lst:api-sample} provides an
-illustration.
+JSON is a lightweight, human-readable data interchange format (an alternative
+to XML for many web APIs), based on JavaScript object syntax. Code listing
+\ref{lst:api-sample} provides an illustration.
 
 Python has standard library support for JSON encoding and decoding (with the
 \texttt{json} package) and there is a natural and intuitive mapping from JSON
-data types to Python data types as shown in table \ref{tab:type-mapping}.
+data types to Python data types as shown in table \ref{tab:type-mapping}. This
+will make working with the data much easier than, for example, using the
+equivalent C package.
 
 \begin{table}[h]
   \begin{center}
@@ -782,14 +786,14 @@ to files on disk and store these dumps on DVDs for safe-keeping.
 \subsection{Integrated Development Environment}
 
 I used the PyCharm IDE\footnote{\url{http://www.jetbrains.com/pycharm/}} for my
-development environment, as it is simply the most feature-rich and
+development environment, as it is the most feature-rich and
 productivity-enhancing tool I know when working with Python programs. It
 provides the standard features expected of any modern IDE (syntax-highlighting,
 visual debugging tools, project-specific environments and libraries, etc.). But
 the reason why I chose it instead of, for instance, Eclipse IDE were its deep
 Subversion integration which provides on-the-fly \texttt{diff} information in
 its code editor interface, a much better cross-platform experience than Eclipse
-(they both run on the JVM), and native support for JavaScript and therefor JSON
+(they both run on the JVM), and native support for JavaScript and therefore JSON
 files, which made exploring sample API outputs a breeze. 
 
 
@@ -800,142 +804,263 @@ files, which made exploring sample API outputs a breeze.
 In this chapter I describe the programming tasks that I completed to achieve the
 aims of the project and explain the engineering choices I made in doing so. 
 
-\begin{verbatim}
-% - Code produced
-% - Acknowledge use of existing tools
-% - Major milestone 
-\end{verbatim}
-
 \halfrule
 
 \section{Gathering the Data}
 
 I described the Mixcloud API resources in section \ref{sec:mix-anatomy}, and my
-first coding effort was to gather as much of the data on \mixurl\ as possible.
+first coding effort was to gather as much of the data from \mixurl\ as possible.
 
 \subsection{API Abstraction: A Python Wrapper}
 
-\begin{verbatim}
-- modelled on similar Facebook API Wrapper
-- Thorough object-oriented view representing anatomy as above
-- paged data complication
-- proxying, caching
-\end{verbatim}
+I wrote a Python wrapper for the Mixcoud API with a strict object-oriented
+representation of the anatamoy described earlier. The class that handles the
+connection to the API server is listed in appendix \ref{app:api-code}. The main
+point of interest in this implementation is that the it abstracts away the
+URL-based access to the API and allows the programmer to pass in resource
+objects. It also handles the cases where dynamic resources are paged and
+follows the pagination to completion before returning a concatenation of the
+results.
+
+I also implemented the capability to use proxy servers to reach the API upon
+connection failure or on hitting rate limits imposed by the server. This meant
+that I reduced the amount of time I needed to leave the crawler running a full
+scan from over a week to 3 days by using two proxy servers (using a SOCKS
+connection to the SRCF and PWF).
 
 \subsection{The Crawler}
 
-\begin{verbatim}
-- proxying, caching
-- breadth-first search of graph using features
-- keep track of state with Redis 
-\end{verbatim}
+\begin{figure}[h]
+ \centering
+ \includegraphics[width=\textwidth]{./images/running-scan.png}
+ % running-scan.png: 1333x756 pixel, 72dpi, 47.03x26.67 cm, bb=0 0 1333 756
+ \caption{The API Crawler running}
+ \label{fig:running-scan}
+\end{figure}
+
+The crawler I wrote (see appendix \ref{app:crawler-code}) to download and store
+the API data performed a breadth-first search of the graph once provided with a
+few seed users and thus tried to get coverage of as much of the \mixurl\ social
+graph as possible.
+
+I decided to take a user-centric approach to the crawl, so in my database users
+would be the first-class citizens and all other relevant data would be saved as
+related to the users. In performing the graph search, I used all possible
+features of a user to explore the graph: followers, followees, favourited items'
+uploaders, and listened to items' uploaders.
+
+\subsubsection{Redis: Semi-Persistent In-Memory Data Structures}
+
+To keep track of my crawler's progress and graph search, I decided to use
+Redis\footnote{\url{http://redis.io/}}. Redis is a key-value store, but with two
+significant additions:
+\begin{itemize}
+ \item The values associated with each key can be high-performance lists, queues
+and sets;
+ \item The Redis server provides \emph{semi-persistence}, in that it
+periodically and asynchronously writes the items in memory to disk, if enough
+changes have been made, so the state of the data structures can be resumed later
+or backed-up.
+\end{itemize} 
+
+Having these features in an existing tool meant that I did not have to implement
+the respective functionalities from scratch in Python to aid my crawler. The
+crawler would simply use Redis data structures to keep track of the queue of
+users to remaining to download, and also use a set data structure that contained
+the users who had already been downloaded to avoid fetching their data too
+often upon multiple encounters.
 
 \subsection{Storing the Data}
 
-\subsubsection{MongoDB: A JSON Document Store}
-\begin{verbatim}
-- JSON response directly to MongoDB
-- Complication with async writes
-- Complication with document and db size limit
-\end{verbatim}
+Thanks to MongoDB's excellent Python driver, storing the JSON responses of the
+API were as simple as converting them to Python objects (see mapping table
+\ref{tab:type-mapping}) and then calling the \texttt{save()} method on an
+instance of a MongoDB collection.
 
-\section{Cleaning the Data}
+I only faced a small problem at this stage. I was running MongoDB on 32-bit
+operating systems and the designers of MongoDB have deliberately limited the
+size of a database running on such OS's to 2GB per instance. Ideally I should
+have been running a 64-bit OS. But I got around this issue by running several
+instances of a MongoDB for each collection, instead of storing all collections
+in one instance.
 
-\begin{verbatim}
-- API bugs
-- Temporal errors (asymmetry)
-\end{verbatim}
+\section{Cleaning and Exploring the Data}
+
+There were two sources of errors in the data I had gathered. Firstly, the
+Mixcloud API had some bugs, specifically that sometimes the JSON fields that
+showed the count of some feature of a user, for example
+\texttt{favorite\_count}, did not match the actual number of favourites
+associated with the user. Secondly, because my scan of the API would happen over
+several days, there would be temporal inconsistencies (which I am calling
+\emph{asymmetries}) in the data. By that I mean that references made in one
+user's data would not have a corresponding reference in some other place because
+that reference had been made during the time of the scan. For instance, someone
+may have started following me on the second day of the scan, and because my user
+data is collected on day one and the other person's data on day three, there
+would asymmetric data in the dataset.
+
+Cleaning the data to remove these errors was fairly straightforward. Correcting
+the counts had to be performed first so that each user's data would be
+consistent with itself before considering outside relationships. This was a
+simple matter of running through each user and setting the count fields to
+match the actual count of the features.
+
+To solve the asymmetry problem, I decided to roll back the inconsistencies in
+the graph until there no longer were any. I did this by identifying
+inconsistencies first, and then removing excess references.
 
 \subsection{Dataset Store Abstraction: MongoMix}
 
+I wrote a library called \emph{MongoMix} that provided an abstraction layer
+for the Mixcloud data I had stored in MongoDB and allowed me to access and
+manipulate it programmatically in Python. The feature of MongoMix that helped
+my later on was that I implemented a caching process for it to reduce the I/O
+blocking penalty of accessing the data in the database from disk. By
+pre-fetching data into the cache,I greatly improved the performance of
+operations that worked on the entire dataset.
 
-\begin{verbatim}
-- MongoMix, abstraction of Mixcloud Data in MongoDB collections
-- Cleaning methods: count correction, asymmetry fixes
-\end{verbatim}
-
-\section{Exploring the Data}
-
-\subsection{Available Features}
-\begin{verbatim}
-- relevant features
-- stats on the data
-\end{verbatim}
-
-\subsection{Producing Test Datasets}
-\begin{verbatim}
-- "hiding" edges
-\end{verbatim}
 
 \section{Making Recommendations}
 
 \subsection{Social Graph Model and Edge Prediction}
 
+The dataset we have collected so far describes the social graph of \mixurl's
+users. I am approaching the concept of recommendations as an edge prediction
+problem for a graph, and the mechanism I have used to make the recommendations
+for a given user is to find other users that are most similar to that user. The
+candidate users for being recommended are those two hops away from the
+recommendee in the social graph, because at more than two hops, almost the
+entire graph would be covered. So the decisions that need to be made at this
+stage are which similarity measures to use, and which features of the data to
+base these measures on.
+
+\subsection{Available Features}
+
+The features that I can potentially use in calculating similarity measures for
+users are:
+\begin{itemize}
+ \item followers,
+ \item followees;
+ \item favourited items' uploaders;
+ \item listened-to items' uploaders.
+\end{itemize}
+
+These are the features that have social significance and whose association with
+a user is likely provide signals as to who the user might have an affinity
+towards and may want to form a social connection with.
+
 \subsection{Similarity Measures}
 
-\subsubsection{Intersection Size}
+The similarity measures I decided to use are as follows,
+inspired by \cite{link-prediction}.
 
-\subsubsection{Jaccard Co-efficient}
+\begin{itemize}
+ \item Intersection size: the amount of overlap between the features of two
+users;
+ \item Jaccard Co-efficient: intersection size divided by the size of the union
+of the features, normalising the similarity value;
+ \item Modified Jaccard: I modified the above measure to be the intersection
+size over the smaller of the feature set, which means the normalisation is
+relative to the maximum possible amount of overlap;
+ \item Adamic-Adar\cite{adamic-adar}: Similar to the Jaccard Co-efficient but
+refines the measure by weighting rarer features more heavily;
+ \item Preferential Attachment: the size of two users' feature sets multiplied
+together - this is normally a network-growth method, but it makes sense as a
+similarity measure because one can think of the likelihood of two users being
+connected as being proportional to how well-connected each of them are.
+\end{itemize}
 
-\subsubsection{Modified Jaccard}
-
-\subsubsection{Adamic-Adar}
-
-\subsubsection{Preferential Attachment}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Evaluation
 \chapter{Evaluation}
 
-\begin{verbatim}
-% - Signs of success
-% -  thorough and systematic testing
-% - figures
-% - Goals achieved
-% - Short-comings
-% - Amibtious logical conclusion 
-\end{verbatim}
+The evaluation of my recommendations was based on making predictions on a test
+dataset and comparing the results with a reference dataset to see if the
+predictions occur.
 
 \halfrule
 
-\section{Static}
+\subsection{Producing Test Datasets}
 
-\section{Temporal}
+For the snapshots of the dataset that I had gathered, I produced test versions
+by removing some percentage (5-10\%) of all the edges in the network. Then I
+could compare the recall and precision rates for the edge predictions that my
+recommender produced.
 
+Since I managed to capture three snapshots of the \mixurl\ dataset at 2 week
+intervals, I could also use the organic growth of the data and treat each
+snapshot as the test data for the next one.
+
+For both types of test data, several parameters could be varied. The features
+that would be used for the similarity calculations and the type of measure were
+mentioned earlier. Also the threshold similarity value for including a
+prediction as a recommendation could also be varied.
+
+On the static snapshot with artificial edges removed, the performance of the
+recommender was characterised by high rates (up to 50\%) of recall but at very
+low precision, no more than 10\%. My modified Jaccard Co-efficient measure
+seemed to perform best on these metrics.
+
+Using the temporal snapshots to evaluate the recommender gave dismal results,
+with both precision and recall rates being very close to zero.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Conclusions
 \chapter{Conclusions}
-% - Reminder of aims and achievements
-% - Discussion in hindsight
 
-\halfrule
+Making recommendations on evolving and dynamic data is difficult to do and
+to measure. The nature of recommendations is that their real quality can only be
+determined by the users whom they are presented to. I thought that using
+temporal snapshots of data may be a good approximation to this, using the
+actual behaviour of the users as groud truths for what recommendations should
+be considered successful, but as demonstrated, this did not prove fruitful, at
+least not with the approach I took.
 
-\section{Further work}
+I should also note that this project dissertation has fallen very short of
+the expectations I had of it, and I want the reader to recognise my
+disappointment with it. Much more sophisticated methods from the fields of
+machine learning and information retrieval could have been explored, other
+mature datasets used and obviously a much more thorough report could have been
+written. Reasons as to why none of that happened are outside the scope of this
+document, but I need to state that academia and I have unfinished business --
+this isn't over.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
 
-\begin{thebibliography}{}
-\end{thebibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliographystyle{abbrv}
+\bibliography{refs}
+\cleardoublepage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendices
 
+\lstset{numbers=left,numberstyle=\footnotesize\texttt}
+
 \appendix
-\chapter*{Appendix}
-\addcontentsline{toc}{chapter}{Appendix}
+\chapter{Selected Source Code}
 
-% Adjustments headers
-\pagestyle{fancy}
-\fancyhead[LO]{\emph{APPENDIX}}
-\fancyhead[RE]{\emph{APPENDIX}}
+\section{Representation of the Connection to the API - api.py}
+\label{app:api-code}
 
-\setcounter{chapter}{1}
-\setcounter{section}{0}
-\renewcommand{\thechapter}{\Alph{chapter}}
+\lstinputlisting[language=Python,caption=Mixcloud API wrapper
+source code, label=lst:api-code]{listings/api.py}
 
-\section{First Appendix}
-\section{Second Appendix}
-\section{Third Appendix}
+\clearpage
+
+\section{API Crawler - crawler.api}
+\label{app:crawler-code}
+
+\lstinputlisting[language=Python,caption=The API data crawler
+source code, label=lst:crawler-code]{listings/crawler.py}
+
+\clearpage
+
+\chapter{Original Project Proposal}
+
+\include{./proposal_body}
+\cleardoublepage
 
 \end{document}
