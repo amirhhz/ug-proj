@@ -1,0 +1,70 @@
+---
+layout: post
+title: Gathering API Data and the Pitfalls Therein
+categories:
+- Dissertation
+tags:
+- api
+- backup
+- cache
+- data
+- database
+- dissertation
+- json
+- migration
+- mongo
+- project
+- redis
+- redundancy
+- replication
+- ssh
+status: draft
+type: post
+published: false
+meta:
+  _edit_last: '2'
+author:
+  display_name: Amir
+  first_name: Amir
+  last_name: Hajizamani
+---
+<h1>The Gathering</h1>
+<p>While my crawler is churning in the data, here's a summary of what I've done so far.</p>
+<h2>The Mixcloud API Wrapper</h2>
+<p>The <a href="http://api.mixcloud.com" target="_blank">Mixcloud API</a> is new and not widely publicised yet, which means that (a) I had to write my own Python wrapper for accessing resources on it, (b) there are reliability issues when accessing the API, to put it mildly. It works fine for now, but when I'm happier with it, I'll post the code here.</p>
+<p>Mixcloud API calls return JSON objects, which is a definite plus.</p>
+<p>The structure and hierarchy of the data available via Mixcloud's API took a bit of getting used to and I've summarised them below.</p>
+<p>URL prefix:</p>
+<pre>http://api.mixcloud.com</pre>
+<p><strong>Base resources</strong> - these go in front of the prefix to return a non-dynamic object (by that I mean the contents don't change too often). Adding the "metadata=1" argument includes links to their dynamic resources, too, as listed further down e.g. "http://api.mixcloud.com/amirhhz/?metadata=1".</p>
+<pre>/&lt;user&gt;/
+/&lt;user&gt;/&lt;cloudcast&gt;/
+/tag/&lt;tag&gt;/
+/categories&gt;/&lt;category&gt;/
+/artist/&lt;artist&gt;/
+/track/&lt;artist&gt;/&lt;trackname&gt;/</pre>
+<p><strong>Dynamic resources</strong> - appended to the ones above, these effectively return the results of queries on the base resources e.g. "http://api.mixcloud.com/amirhhz/followers/" the results may span several so-called pages in the JSON data and I like having finer control over the pagination by using the arguments "?offset=0&amp;limit=100" - return 100 items (the maximum) at a time., which reduces the number of requests made and avoids the default pagination method on some of these resources which are down by date and don't always work.</p>
+<pre>feed/
+followers/
+following/
+comments/
+favorites/
+cloudcasts/
+listens/
+listeners/
+similar/
+popular/
+new/
+users/
+userpick_users/
+userpick_cloudcasts/</pre>
+<p>And there are these miscellany of resources, too:</p>
+<pre>/categories/
+/popular/
+/popular/hot/
+/new/
+/search/?q=&lt;query&gt;&amp;type=&lt;tag|cloudcast|user|artist|track&gt;</pre>
+<h2>MongoDB (JSON slots) + Redis (memcached on steroids)</h2>
+<h1>The Safe-Keeping</h1>
+<h2>Version Control</h2>
+<h2>Backups, Replication and Redundancy</h2>

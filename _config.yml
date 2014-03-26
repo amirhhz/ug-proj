@@ -1,3 +1,4 @@
 name: ahh29@cam
 markdown: redcarpet
 pygments: true
+permalink: /blog/:year/:month/:day/:title/
